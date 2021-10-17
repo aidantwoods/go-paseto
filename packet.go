@@ -1,6 +1,6 @@
 package paseto
 
 type Packet struct {
-	content []byte
-	footer  []byte
+	Content []byte
+	Footer  []byte
 }
