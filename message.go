@@ -1,7 +1,8 @@
 package paseto
 
 type Message struct {
-	version Version
-	purpose Purpose
-	payload Payload
+	Version Version
+	Purpose Purpose
+	Payload Payload
+	Footer  []byte
 }
