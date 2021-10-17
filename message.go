@@ -1,6 +1,11 @@
 package paseto
 
 type Message struct {
-	Payload Payload
-	Footer  []byte
+	Protocol Protocol
+	Payload  Payload
+	Footer   []byte
+}
+
+func (m Message) Header() string {
+	return m.Protocol.Header()
 }

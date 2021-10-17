@@ -1,7 +1,7 @@
 package paseto
 
-type Version int
+type Version string
 
 const (
-	Version4 Version = 4
+	Version4 Version = "v4"
 )
