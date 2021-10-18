@@ -43,7 +43,7 @@ func v4LocalEncrypt(p Packet, key V4SymmetricKey, implicit []byte, unitTestNonce
 	preAuth := pae(header, nonce[:], cipherText, p.Footer, implicit)
 
 	var tag [32]byte
-	genericHash(preAuth, tag[:], authKey[:], 32)
+	genericHash(preAuth, tag[:], authKey[:])
 
 	return newMessage(V4LocalPayload{nonce, cipherText, tag}, p.Footer), nil
 }
@@ -71,7 +71,7 @@ func V4LocalDecrypt(message Message, key V4SymmetricKey, implicit []byte) (Packe
 	preAuth := pae(header, nonce[:], cipherText, message.footer, implicit)
 
 	var expectedTag [32]byte
-	genericHash(preAuth, expectedTag[:], authKey[:], 32)
+	genericHash(preAuth, expectedTag[:], authKey[:])
 
 	if !hmac.Equal(expectedTag[:], givenTag[:]) {
 		var p Packet

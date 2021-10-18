@@ -44,15 +44,11 @@ func b64urlDecode(encoded string) ([]byte, error) {
 	return bytes, nil
 }
 
-func genericHash(in, out, key []byte, outputLength int) {
+func genericHash(in, out, key []byte) {
 	var blake hash.Hash
 	var err error
 
-	if len(out) != outputLength {
-		panic("Insufficient out length")
-	}
-
-	if blake, err = blake2b.New(outputLength, key); err != nil {
+	if blake, err = blake2b.New(len(out), key); err != nil {
 		panic(err)
 	}
 
