@@ -1,4 +1,4 @@
-module github.com/aidantwoods/paseto/v4/local
+module github.com/aidantwoods/go-paseto/v4/local
 
 go 1.17
 
