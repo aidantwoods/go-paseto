@@ -60,7 +60,5 @@ func genericHash(in, out, key []byte, outputLength int) {
 		panic(err)
 	}
 
-	tmp := blake.Sum(nil)
-
-	copy(out, tmp)
+	copy(out, blake.Sum(nil))
 }
