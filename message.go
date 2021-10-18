@@ -47,10 +47,15 @@ func NewMessage(payload Payload, footer []byte) (Message, error) {
 }
 
 func newMessage(payload Payload, footer []byte) Message {
-	// Assume internal callers won't construct bad payloads
-	protocol, _ := ProtocolForPayload(payload)
+	var message Message
+	var err error
 
-	return Message{protocol, payload, footer}
+	// Assume internal callers won't construct bad payloads
+	if message, err = NewMessage(payload, footer); err != nil {
+		panic("Sanity check for payload failed")
+	}
+
+	return message
 }
 
 func deconstructToken(token string) (header string, encodedPayload string, encodedFooter string, err error) {
