@@ -33,3 +33,11 @@ jobs:
           rm *
           wget https://raw.githubusercontent.com/paseto-standard/test-vectors/master/v{1..4}.json
           git diff --exit-code
+
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
