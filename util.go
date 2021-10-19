@@ -14,12 +14,18 @@ func pae(pieces ...[]byte) []byte {
 	buffer := &bytes.Buffer{}
 
 	// MSB should be zero
-	binary.Write(buffer, binary.LittleEndian, int64(len(pieces)))
+	if err := binary.Write(buffer, binary.LittleEndian, int64(len(pieces))); err != nil {
+		panic("Cannot write to buffer")
+	}
 
 	for i := range pieces {
 		// MSB should be zero
-		binary.Write(buffer, binary.LittleEndian, int64(len(pieces[i])))
-		buffer.Write(pieces[i])
+		if err := binary.Write(buffer, binary.LittleEndian, int64(len(pieces[i]))); err != nil {
+			panic("Cannot write to buffer")
+		}
+		if _, err := buffer.Write(pieces[i]); err != nil {
+			panic("Cannot write to buffer")
+		}
 	}
 
 	return buffer.Bytes()

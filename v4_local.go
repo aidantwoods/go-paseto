@@ -24,7 +24,11 @@ func v4LocalEncrypt(p Packet, key V4SymmetricKey, implicit []byte, unitTestNonce
 
 		copy(nonce[:], unitTestNonce)
 	} else {
-		io.ReadFull(rand.Reader, nonce[:])
+		_, err := io.ReadFull(rand.Reader, nonce[:])
+
+		if err != nil {
+			panic("CSPRNG failure")
+		}
 	}
 
 	encKey, authKey, nonce2 := key.split(nonce)
