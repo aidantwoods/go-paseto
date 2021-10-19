@@ -14,6 +14,22 @@ type Protocol struct {
 	purpose Purpose
 }
 
+func NewProtocol(version Version, purpose Purpose) (Protocol, error) {
+	switch version {
+	default:
+		var p Protocol
+		return p, errors.New("Unsupported PASETO version")
+	case Version4:
+		switch purpose {
+		default:
+			var p Protocol
+			return p, errors.New("Unsupported PASETO purpose")
+		case Local:
+			return V4Local, nil
+		}
+	}
+}
+
 func (p Protocol) Header() string {
 	return fmt.Sprintf("%s.%s.", p.version, p.purpose)
 }
