@@ -18,8 +18,7 @@ func v4LocalEncrypt(p Packet, key V4SymmetricKey, implicit []byte, unitTestNonce
 
 	if unitTestNonce != nil {
 		if len(unitTestNonce) != 32 {
-			var m Message
-			return m, errors.New("Unit test nonce incorrect length")
+			panic("Unit test nonce incorrect length")
 		}
 
 		copy(nonce[:], unitTestNonce)
