@@ -34,7 +34,7 @@ func (m Message) encoded() string {
 	return main + "." + b64urlEncode(m.footer)
 }
 
-func NewMessage(payload Payload, footer []byte) (Message, error) {
+func NewMessageFromPayload(payload Payload, footer []byte) (Message, error) {
 	var protocol Protocol
 	var err error
 
@@ -46,12 +46,12 @@ func NewMessage(payload Payload, footer []byte) (Message, error) {
 	return Message{protocol, payload, footer}, nil
 }
 
-func newMessage(payload Payload, footer []byte) Message {
+func newMessageFromPayload(payload Payload, footer []byte) Message {
 	var message Message
 	var err error
 
 	// Assume internal callers won't construct bad payloads
-	if message, err = NewMessage(payload, footer); err != nil {
+	if message, err = NewMessageFromPayload(payload, footer); err != nil {
 		panic("Sanity check for payload failed")
 	}
 
@@ -68,7 +68,7 @@ func deconstructToken(token string) (header string, encodedPayload string, encod
 		return
 	}
 
-	header = strings.Join([]string{parts[0], parts[1]}, ".")
+	header = strings.Join([]string{parts[0], parts[1]}, ".") + "."
 	encodedPayload = parts[2]
 
 	if partsLen == 4 {
@@ -80,7 +80,7 @@ func deconstructToken(token string) (header string, encodedPayload string, encod
 	return header, encodedPayload, encodedFooter, nil
 }
 
-func NewMessageFromToken(protocol Protocol, token string) (Message, error) {
+func NewMessage(protocol Protocol, token string) (Message, error) {
 	header, encodedPayload, encodedFooter, err := deconstructToken(token)
 
 	if err != nil {
@@ -113,5 +113,5 @@ func NewMessageFromToken(protocol Protocol, token string) (Message, error) {
 		return m, err
 	}
 
-	return newMessage(payload, footer), nil
+	return newMessageFromPayload(payload, footer), nil
 }

@@ -45,7 +45,7 @@ func v4LocalEncrypt(p Packet, key V4SymmetricKey, implicit []byte, unitTestNonce
 	var tag [32]byte
 	genericHash(preAuth, tag[:], authKey[:])
 
-	return newMessage(V4LocalPayload{nonce, cipherText, tag}, p.Footer), nil
+	return newMessageFromPayload(V4LocalPayload{nonce, cipherText, tag}, p.Footer), nil
 }
 
 func V4LocalDecrypt(message Message, key V4SymmetricKey, implicit []byte) (Packet, error) {
