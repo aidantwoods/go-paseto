@@ -21,3 +21,15 @@ jobs:
 
       - name: Run tests
         run: go test -race
+
+  vectors-not-stale:
+    name: Check Test Vectors Up To Date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check for updates
+        run: |
+          cd test-vectors
+          rm *
+          wget https://raw.githubusercontent.com/paseto-standard/test-vectors/master/v{1..4}.json
+          git diff --exit-code
