@@ -25,7 +25,7 @@ func (m Message) Footer() []byte {
 	return m.footer
 }
 
-func (m Message) encoded() string {
+func (m Message) Encoded() string {
 	main := m.Header() + encoding.Encode(m.payload.Bytes())
 
 	if len(m.footer) == 0 {

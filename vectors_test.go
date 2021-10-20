@@ -94,8 +94,8 @@ func TestV4(t *testing.T) {
 				return
 			}
 
-			if encrypted.encoded() != test.Token {
-				t.Errorf("Expected: %s, got: %s", test.Token, encrypted.encoded())
+			if encrypted.Encoded() != test.Token {
+				t.Errorf("Expected: %s, got: %s", test.Token, encrypted.Encoded())
 			}
 		})
 	}
