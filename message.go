@@ -3,6 +3,7 @@ package paseto
 import (
 	"strings"
 
+	"github.com/aidantwoods/go-paseto/internal/encoding"
 	"github.com/pkg/errors"
 )
 
@@ -25,13 +26,13 @@ func (m Message) Footer() []byte {
 }
 
 func (m Message) encoded() string {
-	main := m.Header() + b64urlEncode(m.payload.Bytes())
+	main := m.Header() + encoding.Encode(m.payload.Bytes())
 
 	if len(m.footer) == 0 {
 		return main
 	}
 
-	return main + "." + b64urlEncode(m.footer)
+	return main + "." + encoding.Encode(m.footer)
 }
 
 func NewMessageFromPayload(payload Payload, footer []byte) (Message, error) {
@@ -95,14 +96,14 @@ func NewMessage(protocol Protocol, token string) (Message, error) {
 
 	var payloadBytes []byte
 
-	if payloadBytes, err = b64urlDecode(encodedPayload); err != nil {
+	if payloadBytes, err = encoding.Decode(encodedPayload); err != nil {
 		var m Message
 		return m, err
 	}
 
 	var footer []byte
 
-	if footer, err = b64urlDecode(encodedFooter); err != nil {
+	if footer, err = encoding.Decode(encodedFooter); err != nil {
 		var m Message
 		return m, err
 	}

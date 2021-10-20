@@ -5,6 +5,8 @@ import (
 	"crypto/rand"
 	"io"
 
+	"github.com/aidantwoods/go-paseto/internal/encoding"
+	"github.com/aidantwoods/go-paseto/internal/hashing"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/chacha20"
 )
@@ -43,10 +45,10 @@ func v4LocalEncrypt(p Packet, key V4SymmetricKey, implicit []byte, unitTestNonce
 
 	header := []byte(V4Local.Header())
 
-	preAuth := pae(header, nonce[:], cipherText, p.Footer, implicit)
+	preAuth := encoding.Pae(header, nonce[:], cipherText, p.Footer, implicit)
 
 	var tag [32]byte
-	genericHash(preAuth, tag[:], authKey[:])
+	hashing.GenericHash(preAuth, tag[:], authKey[:])
 
 	return newMessageFromPayload(V4LocalPayload{nonce, cipherText, tag}, p.Footer), nil
 }
@@ -71,10 +73,10 @@ func V4LocalDecrypt(message Message, key V4SymmetricKey, implicit []byte) (Packe
 
 	header := []byte(V4Local.Header())
 
-	preAuth := pae(header, nonce[:], cipherText, message.footer, implicit)
+	preAuth := encoding.Pae(header, nonce[:], cipherText, message.footer, implicit)
 
 	var expectedTag [32]byte
-	genericHash(preAuth, expectedTag[:], authKey[:])
+	hashing.GenericHash(preAuth, expectedTag[:], authKey[:])
 
 	if !hmac.Equal(expectedTag[:], givenTag[:]) {
 		var p Packet
