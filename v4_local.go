@@ -71,7 +71,7 @@ func V4LocalDecrypt(message Message, key V4SymmetricKey, implicit []byte) (Packe
 		panic("Cannot construct cipher")
 	}
 
-	header := []byte(V4Local.Header())
+	header := []byte(message.Header())
 
 	preAuth := encoding.Pae(header, nonce[:], cipherText, message.footer, implicit)
 
