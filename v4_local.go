@@ -11,11 +11,11 @@ import (
 	"golang.org/x/crypto/chacha20"
 )
 
-func V4LocalEncrypt(p Packet, key V4SymmetricKey, implicit []byte) (Message, error) {
+func V4LocalEncrypt(p Packet, key V4SymmetricKey, implicit []byte) Message {
 	return v4LocalEncrypt(p, key, implicit, nil)
 }
 
-func v4LocalEncrypt(p Packet, key V4SymmetricKey, implicit []byte, unitTestNonce []byte) (Message, error) {
+func v4LocalEncrypt(p Packet, key V4SymmetricKey, implicit []byte, unitTestNonce []byte) Message {
 	var nonce [32]byte
 
 	if unitTestNonce != nil {
@@ -50,7 +50,7 @@ func v4LocalEncrypt(p Packet, key V4SymmetricKey, implicit []byte, unitTestNonce
 	var tag [32]byte
 	hashing.GenericHash(preAuth, tag[:], authKey[:])
 
-	return newMessageFromPayload(V4LocalPayload{nonce, cipherText, tag}, p.Footer), nil
+	return newMessageFromPayload(V4LocalPayload{nonce, cipherText, tag}, p.Footer)
 }
 
 func V4LocalDecrypt(message Message, key V4SymmetricKey, implicit []byte) (Packet, error) {

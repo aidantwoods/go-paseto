@@ -89,7 +89,7 @@ func TestV4(t *testing.T) {
 			implicit := []byte(test.ImplicitAssertation)
 
 			var encrypted Message
-			if encrypted, err = v4LocalEncrypt(packet, sk, implicit, unitTestNonce); err != nil {
+			if encrypted = v4LocalEncrypt(packet, sk, implicit, unitTestNonce); err != nil {
 				t.Error(err)
 				return
 			}
