@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 type TestVectors struct {
@@ -27,15 +29,11 @@ type TestVector struct {
 
 func TestV4(t *testing.T) {
 	data, err := os.ReadFile("test-vectors/v4.json")
-	if err != nil {
-		t.Errorf("Error reading file: %s", err)
-	}
+	require.NoError(t, err)
 
 	var tests TestVectors
 	err = json.Unmarshal(data, &tests)
-	if err != nil {
-		t.Errorf("Error reading file: %s", err)
-	}
+	require.NoError(t, err)
 
 	for _, test := range tests.Tests {
 		t.Run(test.Name, func(t *testing.T) {
@@ -44,66 +42,45 @@ func TestV4(t *testing.T) {
 			switch test.Key {
 			// Local mode
 			default:
-				var sk V4SymmetricKey
-				if sk, err = V4SymmetricKeyFromHex(test.Key); err != nil {
-					t.Error(err)
+				sk, err := V4SymmetricKeyFromHex(test.Key)
+				require.NoError(t, err)
+
+				message, err := NewMessage(V4Local, test.Token)
+				if test.ExpectFail {
+					require.Error(t, err)
 					return
 				}
+				require.NoError(t, err)
 
-				var message Message
-				if message, err = NewMessage(V4Local, test.Token); err != nil {
-					if test.ExpectFail {
-						return
-					}
-
-					t.Error(err)
+				decoded, err = V4LocalDecrypt(message, sk, []byte(test.ImplicitAssertation))
+				if test.ExpectFail {
+					require.Error(t, err)
 					return
 				}
+				require.NoError(t, err)
 
-				if decoded, err = V4LocalDecrypt(message, sk, []byte(test.ImplicitAssertation)); err != nil {
-					if test.ExpectFail {
-						return
-					}
-
-					t.Error(err)
-					return
-				}
 			// Public mode
 			case "":
-				var pk V4AsymmetricPublicKey
+				pk, err := NewV4AsymmetricPublicKeyFromHex(test.PublicKey)
+				require.NoError(t, err)
 
-				if pk, err = NewV4AsymmetricPublicKeyFromHex(test.PublicKey); err != nil {
-					t.Error(err)
+				message, err := NewMessage(V4Public, test.Token)
+				if test.ExpectFail {
+					require.Error(t, err)
 					return
 				}
+				require.NoError(t, err)
 
-				var message Message
-				if message, err = NewMessage(V4Public, test.Token); err != nil {
-					if test.ExpectFail {
-						return
-					}
-
-					t.Error(err)
+				decoded, err = V4PublicVerify(message, pk, []byte(test.ImplicitAssertation))
+				if test.ExpectFail {
+					require.Error(t, err)
 					return
 				}
-
-				if decoded, err = V4PublicVerify(message, pk, []byte(test.ImplicitAssertation)); err != nil {
-					if test.ExpectFail {
-						return
-					}
-
-					t.Error(err)
-					return
-				}
+				require.NoError(t, err)
 			}
 
-			if test.Payload != string(decoded.Content) {
-				t.Errorf("Expected: %s, got: %s", test.Payload, decoded.Content)
-			}
-
-			if test.Footer != string(decoded.Footer) {
-				t.Errorf("Expected: %s, got: %s", test.Footer, decoded.Footer)
-			}
+			require.Equal(t, test.Payload, string(decoded.Content))
+			require.Equal(t, test.Footer, string(decoded.Footer))
 
 			packet := NewPacket([]byte(test.Payload), []byte(test.Footer))
 			implicit := []byte(test.ImplicitAssertation)
@@ -111,44 +88,26 @@ func TestV4(t *testing.T) {
 			switch test.Key {
 			// Local mode
 			default:
-				var sk V4SymmetricKey
-				if sk, err = V4SymmetricKeyFromHex(test.Key); err != nil {
-					t.Error(err)
-					return
-				}
+				sk, err := V4SymmetricKeyFromHex(test.Key)
+				require.NoError(t, err)
 
-				var unitTestNonce []byte
-				if unitTestNonce, err = hex.DecodeString(test.Nonce); err != nil {
-					t.Error(err)
-					return
-				}
+				unitTestNonce, err := hex.DecodeString(test.Nonce)
+				require.NoError(t, err)
 
-				var encrypted Message
-				if encrypted = v4LocalEncrypt(packet, sk, implicit, unitTestNonce); err != nil {
-					t.Error(err)
-					return
-				}
+				encrypted := v4LocalEncrypt(packet, sk, implicit, unitTestNonce)
+				require.NoError(t, err)
 
-				if encrypted.Encoded() != test.Token {
-					t.Errorf("Expected: %s, got: %s", test.Token, encrypted.Encoded())
-				}
+				require.Equal(t, test.Token, encrypted.Encoded())
+
 			// Public mode
 			case "":
-				var sk V4AsymmetricSecretKey
-				if sk, err = NewV4AsymmetricSecretKeyFromHex(test.SecretKey); err != nil {
-					t.Error(err)
-					return
-				}
+				sk, err := NewV4AsymmetricSecretKeyFromHex(test.SecretKey)
+				require.NoError(t, err)
 
-				var signed Message
-				if signed = V4PublicSign(packet, sk, implicit); err != nil {
-					t.Error(err)
-					return
-				}
+				signed := V4PublicSign(packet, sk, implicit)
+				require.NoError(t, err)
 
-				if signed.Encoded() != test.Token {
-					t.Errorf("Expected: %s, got: %s", test.Token, signed.Encoded())
-				}
+				require.Equal(t, test.Token, signed.Encoded())
 			}
 		})
 	}
