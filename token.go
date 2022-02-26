@@ -12,15 +12,15 @@ type tokenValue struct {
 	rawValue []byte
 }
 
-func newTokenValue(value interface{}) (tokenValue, error) {
+func newTokenValue(value interface{}) (*tokenValue, error) {
 	var bytes []byte
 	var err error
 
 	if bytes, err = json.Marshal(value); err != nil {
-		return tokenValue{nil}, err
+		return nil, err
 	}
 
-	return tokenValue{bytes}, nil
+	return &tokenValue{bytes}, nil
 }
 
 type Token struct {
@@ -59,14 +59,14 @@ func NewTokenFromClaimsJson(claimsData []byte, footer string, allowedVersions []
 }
 
 func (t *Token) Set(key string, value interface{}) error {
-	var v tokenValue
+	var v *tokenValue
 	var err error
 
 	if v, err = newTokenValue(value); err != nil {
 		return err
 	}
 
-	t.claims[key] = v
+	t.claims[key] = *v
 
 	return nil
 }
