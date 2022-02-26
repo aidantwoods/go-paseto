@@ -91,6 +91,7 @@ func TestFromMap(t *testing.T) {
 		"",
 		[]Version{Version4},
 	)
+	require.NoError(t, err)
 
 	var outputStr string
 	err, exists := token.Get("foo", &outputStr)
@@ -124,6 +125,7 @@ func TestJsonEncode(t *testing.T) {
 		"",
 		[]Version{Version4},
 	)
+	require.NoError(t, err)
 
 	data, err := token.ClaimsJson()
 	require.NoError(t, err)
