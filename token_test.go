@@ -9,7 +9,8 @@ import (
 func TestSomeString(t *testing.T) {
 	token := NewEmptyToken([]Version{Version4})
 
-	token.Set("foo", "bar")
+	err := token.Set("foo", "bar")
+	require.NoError(t, err)
 
 	var output string
 	err, exists := token.Get("foo", &output)
@@ -30,7 +31,8 @@ func TestSomeStruct(t *testing.T) {
 
 	token := NewEmptyToken([]Version{Version4})
 
-	token.Set("baz", someStruct)
+	err := token.Set("baz", someStruct)
+	require.NoError(t, err)
 
 	var output SomeStruct
 	err, exists := token.Get("baz", &output)
@@ -51,7 +53,8 @@ func TestSomeWrongType(t *testing.T) {
 
 	token := NewEmptyToken([]Version{Version4})
 
-	token.Set("baz", someStruct)
+	err := token.Set("baz", someStruct)
+	require.NoError(t, err)
 
 	var output bool
 	err, exists := token.Get("baz", &output)
@@ -62,7 +65,8 @@ func TestSomeWrongType(t *testing.T) {
 func TestSomeWrongKey(t *testing.T) {
 	token := NewEmptyToken([]Version{Version4})
 
-	token.Set("foo", "bar")
+	err := token.Set("foo", "bar")
+	require.NoError(t, err)
 
 	var output string
 	err, exists := token.Get("bar", &output)
