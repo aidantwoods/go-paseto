@@ -3,5 +3,6 @@ package paseto
 type Purpose string
 
 const (
-	Local Purpose = "local"
+	Local  Purpose = "local"
+	Public Purpose = "public"
 )

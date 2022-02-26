@@ -6,7 +6,8 @@ import (
 )
 
 var (
-	V4Local = Protocol{Version4, Local}
+	V4Local  = Protocol{Version4, Local}
+	V4Public = Protocol{Version4, Public}
 )
 
 type Protocol struct {
@@ -26,6 +27,8 @@ func NewProtocol(version Version, purpose Purpose) (Protocol, error) {
 			return p, errors.New("Unsupported PASETO purpose")
 		case Local:
 			return V4Local, nil
+		case Public:
+			return V4Public, nil
 		}
 	}
 }
@@ -54,6 +57,8 @@ func (p Protocol) NewPayload(bytes []byte) (Payload, error) {
 			return p, errors.New("Unsupported PASETO purpose")
 		case Local:
 			return NewV4LocalPayload(bytes)
+		case Public:
+			return NewV4PublicPayload(bytes)
 		}
 	}
 }

@@ -38,64 +38,117 @@ func TestV4(t *testing.T) {
 	}
 
 	for _, test := range tests.Tests {
-		if test.Key == "" {
-			// skip public mode for now
-			t.Logf("Skipping %s...", test.Name)
-			continue
-		}
-
 		t.Run(test.Name, func(t *testing.T) {
-			var sk V4SymmetricKey
-			if sk, err = V4SymmetricKeyFromHex(test.Key); err != nil {
-				t.Error(err)
-				return
-			}
+			var decoded Packet
 
-			var message Message
-			if message, err = NewMessage(V4Local, test.Token); err != nil {
-				if test.ExpectFail {
+			switch test.Key {
+			// Local mode
+			default:
+				var sk V4SymmetricKey
+				if sk, err = V4SymmetricKeyFromHex(test.Key); err != nil {
+					t.Error(err)
 					return
 				}
 
-				t.Error(err)
-				return
-			}
+				var message Message
+				if message, err = NewMessage(V4Local, test.Token); err != nil {
+					if test.ExpectFail {
+						return
+					}
 
-			var decrypted Packet
-			if decrypted, err = V4LocalDecrypt(message, sk, []byte(test.ImplicitAssertation)); err != nil {
-				if test.ExpectFail {
+					t.Error(err)
 					return
 				}
 
-				t.Error(err)
-				return
+				if decoded, err = V4LocalDecrypt(message, sk, []byte(test.ImplicitAssertation)); err != nil {
+					if test.ExpectFail {
+						return
+					}
+
+					t.Error(err)
+					return
+				}
+			// Public mode
+			case "":
+				var pk V4AsymmetricPublicKey
+
+				if pk, err = NewV4AsymmetricPublicKeyFromHex(test.PublicKey); err != nil {
+					t.Error(err)
+					return
+				}
+
+				var message Message
+				if message, err = NewMessage(V4Public, test.Token); err != nil {
+					if test.ExpectFail {
+						return
+					}
+
+					t.Error(err)
+					return
+				}
+
+				if decoded, err = V4PublicVerify(message, pk, []byte(test.ImplicitAssertation)); err != nil {
+					if test.ExpectFail {
+						return
+					}
+
+					t.Error(err)
+					return
+				}
 			}
 
-			if test.Payload != string(decrypted.Content) {
-				t.Errorf("Expected: %s, got: %s", test.Payload, decrypted.Content)
+			if test.Payload != string(decoded.Content) {
+				t.Errorf("Expected: %s, got: %s", test.Payload, decoded.Content)
 			}
 
-			if test.Footer != string(decrypted.Footer) {
-				t.Errorf("Expected: %s, got: %s", test.Footer, decrypted.Footer)
-			}
-
-			var unitTestNonce []byte
-			if unitTestNonce, err = hex.DecodeString(test.Nonce); err != nil {
-				t.Error(err)
-				return
+			if test.Footer != string(decoded.Footer) {
+				t.Errorf("Expected: %s, got: %s", test.Footer, decoded.Footer)
 			}
 
 			packet := NewPacket([]byte(test.Payload), []byte(test.Footer))
 			implicit := []byte(test.ImplicitAssertation)
 
-			var encrypted Message
-			if encrypted = v4LocalEncrypt(packet, sk, implicit, unitTestNonce); err != nil {
-				t.Error(err)
-				return
-			}
+			switch test.Key {
+			// Local mode
+			default:
+				var sk V4SymmetricKey
+				if sk, err = V4SymmetricKeyFromHex(test.Key); err != nil {
+					t.Error(err)
+					return
+				}
 
-			if encrypted.Encoded() != test.Token {
-				t.Errorf("Expected: %s, got: %s", test.Token, encrypted.Encoded())
+				var unitTestNonce []byte
+				if unitTestNonce, err = hex.DecodeString(test.Nonce); err != nil {
+					t.Error(err)
+					return
+				}
+
+				var encrypted Message
+				if encrypted = v4LocalEncrypt(packet, sk, implicit, unitTestNonce); err != nil {
+					t.Error(err)
+					return
+				}
+
+				if encrypted.Encoded() != test.Token {
+					t.Errorf("Expected: %s, got: %s", test.Token, encrypted.Encoded())
+				}
+			// Public mode
+			case "":
+				var sk V4AsymmetricSecretKey
+				if sk, err = NewV4AsymmetricSecretKeyFromHex(test.SecretKey); err != nil {
+					t.Error(err)
+					return
+				}
+
+				var signed Message
+				if signed = V4PublicSign(packet, sk, implicit); err != nil {
+					t.Error(err)
+					return
+				}
+
+				if signed.Encoded() != test.Token {
+					t.Errorf("Expected: %s, got: %s", test.Token, signed.Encoded())
+				}
 			}
 		})
 	}
