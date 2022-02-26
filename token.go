@@ -119,3 +119,60 @@ func (t Token) ClaimsJson() ([]byte, error) {
 
 	return data, nil
 }
+
+func (t Token) V4Sign(key V4AsymmetricSecretKey, implicit []byte) (*Message, error) {
+	if !t.supportsSendingKey(key) {
+		return nil, errors.New("Unsupported Key")
+	}
+
+	var encodedClaims []byte
+	var err error
+
+	if encodedClaims, err = t.ClaimsJson(); err != nil {
+		return nil, err
+	}
+
+	packet := Packet{encodedClaims, []byte(t.footer)}
+
+	message := V4PublicSign(packet, key, implicit)
+
+	return &message, nil
+}
+
+func (t Token) V4Encrypt(key V4SymmetricKey, implicit []byte) (*Message, error) {
+	if !t.supportsSendingKey(key) {
+		return nil, errors.New("Unsupported Key")
+	}
+
+	var encodedClaims []byte
+	var err error
+
+	if encodedClaims, err = t.ClaimsJson(); err != nil {
+		return nil, err
+	}
+
+	packet := Packet{encodedClaims, []byte(t.footer)}
+
+	message := V4LocalEncrypt(packet, key, implicit)
+
+	return &message, nil
+}
+
+func (t Token) supportsSendingKey(key interface{}) bool {
+	switch key.(type) {
+	case V4SymmetricKey, V4AsymmetricSecretKey:
+		return t.supportsVersion(Version4)
+	default:
+		return false
+	}
+}
+
+func (t Token) supportsVersion(version Version) bool {
+	for _, allowedVersion := range t.allowedVersions {
+		if version == allowedVersion {
+			return true
+		}
+	}
+
+	return false
+}
