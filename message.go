@@ -21,7 +21,7 @@ func (m Message) Payload() Payload {
 	return m.payload
 }
 
-func (m Message) Footer() []byte {
+func (m Message) UnsafeFooter() []byte {
 	return m.footer
 }
 
