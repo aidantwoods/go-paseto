@@ -7,7 +7,7 @@ import (
 )
 
 type tokenValue struct {
-	// we store thee encoded value, and let json.Unmarshal take care of
+	// we store the encoded value, and let json.Unmarshal take care of
 	// conversion
 	rawValue []byte
 }
