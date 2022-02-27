@@ -10,21 +10,14 @@ import (
 func TestAllClaimsPass(t *testing.T) {
 	token := NewToken()
 
-	err := token.SetAudience("a")
-	require.NoError(t, err)
-	err = token.SetJti("b")
-	require.NoError(t, err)
-	err = token.SetIssuer("c")
-	require.NoError(t, err)
-	err = token.SetExpiration(time.Now().Add(time.Minute))
-	require.NoError(t, err)
-	err = token.SetSubject("d")
-	require.NoError(t, err)
+	token.SetAudience("a")
+	token.SetJti("b")
+	token.SetIssuer("c")
+	token.SetExpiration(time.Now().Add(time.Minute))
+	token.SetSubject("d")
 
-	err = token.SetNotBefore(time.Now().Add(25 * time.Second))
-	require.NoError(t, err)
-	err = token.SetIssuedAt(time.Now())
-	require.NoError(t, err)
+	token.SetNotBefore(time.Now().Add(25 * time.Second))
+	token.SetIssuedAt(time.Now())
 
 	key := NewV4SymmetricKey()
 	secretKey := NewV4AsymmetricSecretKey()
@@ -54,12 +47,9 @@ func TestFutureIat(t *testing.T) {
 	token := NewToken()
 
 	// simulated check will be 30 seconds from now
-	err := token.SetExpiration(time.Now().Add(time.Minute))
-	require.NoError(t, err)
-	err = token.SetNotBefore(time.Now().Add(25 * time.Second))
-	require.NoError(t, err)
-	err = token.SetIssuedAt(time.Now().Add(35 * time.Minute))
-	require.NoError(t, err)
+	token.SetExpiration(time.Now().Add(time.Minute))
+	token.SetNotBefore(time.Now().Add(25 * time.Second))
+	token.SetIssuedAt(time.Now().Add(35 * time.Minute))
 
 	key := NewV4SymmetricKey()
 
@@ -77,12 +67,9 @@ func TestFutureNbf(t *testing.T) {
 	token := NewToken()
 
 	// simulated check will be 30 seconds from now
-	err := token.SetExpiration(time.Now().Add(time.Minute))
-	require.NoError(t, err)
-	err = token.SetNotBefore(time.Now().Add(35 * time.Second))
-	require.NoError(t, err)
-	err = token.SetIssuedAt(time.Now())
-	require.NoError(t, err)
+	token.SetExpiration(time.Now().Add(time.Minute))
+	token.SetNotBefore(time.Now().Add(35 * time.Second))
+	token.SetIssuedAt(time.Now())
 
 	key := NewV4SymmetricKey()
 
@@ -100,12 +87,9 @@ func TestPastExp(t *testing.T) {
 	token := NewToken()
 
 	// simulated check will be 30 seconds from now
-	err := token.SetExpiration(time.Now().Add(29 * time.Second))
-	require.NoError(t, err)
-	err = token.SetNotBefore(time.Now().Add(25 * time.Second))
-	require.NoError(t, err)
-	err = token.SetIssuedAt(time.Now())
-	require.NoError(t, err)
+	token.SetExpiration(time.Now().Add(29 * time.Second))
+	token.SetNotBefore(time.Now().Add(25 * time.Second))
+	token.SetIssuedAt(time.Now())
 
 	key := NewV4SymmetricKey()
 

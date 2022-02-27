@@ -96,6 +96,13 @@ func (t Token) GetString(key string) (*string, error) {
 	return &str, nil
 }
 
+func (t *Token) SetString(key string, value string) {
+	// panic if we get an error, we shouldn't fail to set a string value
+	if err := t.Set(key, value); err != nil {
+		panic(err)
+	}
+}
+
 func (t Token) Claims() (map[string]interface{}, error) {
 	claims := make(map[string]interface{})
 

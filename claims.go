@@ -191,30 +191,30 @@ func (t Token) GetSubject() (*string, error) {
 	return t.GetString("sub")
 }
 
-func (t *Token) SetAudience(audience string) error {
-	return t.Set("aud", audience)
+func (t *Token) SetAudience(audience string) {
+	t.SetString("aud", audience)
 }
 
-func (t *Token) SetExpiration(exp time.Time) error {
-	return t.Set("exp", exp.Format(time.RFC3339))
+func (t *Token) SetExpiration(exp time.Time) {
+	t.SetString("exp", exp.Format(time.RFC3339))
 }
 
-func (t *Token) SetIssuedAt(iat time.Time) error {
-	return t.Set("iat", iat.Format(time.RFC3339))
+func (t *Token) SetIssuedAt(iat time.Time) {
+	t.SetString("iat", iat.Format(time.RFC3339))
 }
 
-func (t *Token) SetIssuer(issuer string) error {
-	return t.Set("iss", issuer)
+func (t *Token) SetIssuer(issuer string) {
+	t.SetString("iss", issuer)
 }
 
-func (t *Token) SetJti(identifier string) error {
-	return t.Set("jti", identifier)
+func (t *Token) SetJti(identifier string) {
+	t.SetString("jti", identifier)
 }
 
-func (t *Token) SetNotBefore(nbf time.Time) error {
-	return t.Set("nbf", nbf.Format(time.RFC3339))
+func (t *Token) SetNotBefore(nbf time.Time) {
+	t.SetString("nbf", nbf.Format(time.RFC3339))
 }
 
-func (t *Token) SetSubject(subject string) error {
-	return t.Set("sub", subject)
+func (t *Token) SetSubject(subject string) {
+	t.SetString("sub", subject)
 }
