@@ -5,7 +5,7 @@ type Packet struct {
 	Footer  []byte
 }
 
-func NewPacket(content []byte, footer []byte) Packet {
+func newPacket(content []byte, footer []byte) Packet {
 	return Packet{content, footer}
 }
 

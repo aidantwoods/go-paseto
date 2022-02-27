@@ -82,7 +82,7 @@ func TestV4(t *testing.T) {
 			require.Equal(t, test.Payload, string(decoded.Content))
 			require.Equal(t, test.Footer, string(decoded.Footer))
 
-			packet := NewPacket([]byte(test.Payload), []byte(test.Footer))
+			packet := newPacket([]byte(test.Payload), []byte(test.Footer))
 			implicit := []byte(test.ImplicitAssertation)
 
 			switch test.Key {
