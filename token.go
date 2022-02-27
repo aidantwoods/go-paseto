@@ -86,6 +86,16 @@ func (t Token) Get(key string, output interface{}) (err error, exists bool) {
 	return nil, true
 }
 
+func (t Token) GetString(key string) (*string, error) {
+	var str string
+
+	if err, _ := t.Get(key, &str); err != nil {
+		return nil, err
+	}
+
+	return &str, nil
+}
+
 func (t Token) Claims() (map[string]interface{}, error) {
 	claims := make(map[string]interface{})
 
