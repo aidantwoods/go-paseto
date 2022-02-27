@@ -119,7 +119,7 @@ func NewMessage(protocol Protocol, token string) (Message, error) {
 
 func (m Message) V4Verify(key V4AsymmetricPublicKey, implicit []byte) (*Token, error) {
 	if packet, err := V4PublicVerify(m, key, implicit); err == nil {
-		return packet.Token()
+		return packet.token()
 	} else {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (m Message) V4Verify(key V4AsymmetricPublicKey, implicit []byte) (*Token, e
 
 func (m Message) V4Decrypt(key V4SymmetricKey, implicit []byte) (*Token, error) {
 	if packet, err := V4LocalDecrypt(m, key, implicit); err == nil {
-		return packet.Token()
+		return packet.token()
 	} else {
 		return nil, err
 	}
