@@ -33,6 +33,10 @@ func NewV4AsymmetricPublicKeyFromHex(hexEncoded string) (V4AsymmetricPublicKey, 
 	return V4AsymmetricPublicKey{publicKey}, nil
 }
 
+func (k V4AsymmetricPublicKey) ExportHex() string {
+	return hex.EncodeToString(k.material)
+}
+
 // V4AsymmetricSecretKey v4 public private key
 type V4AsymmetricSecretKey struct {
 	material ed25519.PrivateKey
@@ -46,6 +50,14 @@ func (k V4AsymmetricSecretKey) Public() V4AsymmetricPublicKey {
 	}
 
 	return V4AsymmetricPublicKey{material}
+}
+
+func (k V4AsymmetricSecretKey) ExportHex() string {
+	return hex.EncodeToString(k.material)
+}
+
+func (k V4AsymmetricSecretKey) ExportSeedHex() string {
+	return hex.EncodeToString(k.material.Seed())
 }
 
 func NewV4AsymmetricSecretKey() V4AsymmetricSecretKey {
@@ -109,6 +121,10 @@ func NewV4SymmetricKey() V4SymmetricKey {
 	}
 
 	return V4SymmetricKey{material}
+}
+
+func (k V4SymmetricKey) ExportHex() string {
+	return hex.EncodeToString(k.material[:])
 }
 
 func V4SymmetricKeyFromHex(hexEncoded string) (V4SymmetricKey, error) {
