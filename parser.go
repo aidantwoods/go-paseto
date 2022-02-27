@@ -8,7 +8,11 @@ type Parser struct {
 	rules []Rule
 }
 
-func NewV4Parser() Parser {
+func NewParser() Parser {
+	return Parser{nil}
+}
+
+func NewParserValidNow() Parser {
 	return Parser{[]Rule{ValidAt(time.Now())}}
 }
 
