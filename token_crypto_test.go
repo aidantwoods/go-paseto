@@ -20,8 +20,7 @@ func TestSignSelfConsistent(t *testing.T) {
 			"foo": "bar",
 			"baz": someStruct,
 		},
-		"",
-		[]Version{Version4},
+		nil,
 	)
 	require.NoError(t, err)
 
@@ -56,8 +55,7 @@ func TestEncryptSelfConsistent(t *testing.T) {
 			"foo": "bar",
 			"baz": someStruct,
 		},
-		"",
-		[]Version{Version4},
+		nil,
 	)
 	require.NoError(t, err)
 

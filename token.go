@@ -24,19 +24,18 @@ func newTokenValue(value interface{}) (*tokenValue, error) {
 }
 
 type Token struct {
-	claims          map[string]tokenValue
-	footer          string
-	allowedVersions []Version
+	claims map[string]tokenValue
+	footer []byte
 }
 
 func NewEmptyToken(allowedVersions []Version) Token {
-	return Token{make(map[string]tokenValue), "", allowedVersions}
+	return Token{make(map[string]tokenValue), nil}
 }
 
-func NewToken(claims map[string]interface{}, footer string, allowedVersions []Version) (*Token, error) {
+func NewToken(claims map[string]interface{}, footer []byte) (*Token, error) {
 	tokenValueClaims := make(map[string]tokenValue)
 
-	token := Token{tokenValueClaims, footer, allowedVersions}
+	token := Token{tokenValueClaims, footer}
 
 	for key, value := range claims {
 		if err := token.Set(key, value); err != nil {
@@ -47,7 +46,7 @@ func NewToken(claims map[string]interface{}, footer string, allowedVersions []Ve
 	return &token, nil
 }
 
-func NewTokenFromClaimsJson(claimsData []byte, footer string, allowedVersions []Version) (*Token, error) {
+func NewTokenFromClaimsJson(claimsData []byte, footer []byte) (*Token, error) {
 	var claims map[string]interface{}
 	var err error
 
@@ -55,7 +54,7 @@ func NewTokenFromClaimsJson(claimsData []byte, footer string, allowedVersions []
 		return nil, err
 	}
 
-	return NewToken(claims, footer, allowedVersions)
+	return NewToken(claims, footer)
 }
 
 func (t *Token) Set(key string, value interface{}) error {
@@ -121,9 +120,6 @@ func (t Token) ClaimsJson() ([]byte, error) {
 }
 
 func (t Token) V4Sign(key V4AsymmetricSecretKey, implicit []byte) (*Message, error) {
-	if !t.supportsSendingKey(key) {
-		return nil, errors.New("Unsupported Key")
-	}
 
 	var encodedClaims []byte
 	var err error
@@ -140,10 +136,6 @@ func (t Token) V4Sign(key V4AsymmetricSecretKey, implicit []byte) (*Message, err
 }
 
 func (t Token) V4Encrypt(key V4SymmetricKey, implicit []byte) (*Message, error) {
-	if !t.supportsSendingKey(key) {
-		return nil, errors.New("Unsupported Key")
-	}
-
 	var encodedClaims []byte
 	var err error
 
@@ -156,23 +148,4 @@ func (t Token) V4Encrypt(key V4SymmetricKey, implicit []byte) (*Message, error) 
 	message := V4LocalEncrypt(packet, key, implicit)
 
 	return &message, nil
-}
-
-func (t Token) supportsSendingKey(key interface{}) bool {
-	switch key.(type) {
-	case V4SymmetricKey, V4AsymmetricSecretKey:
-		return t.supportsVersion(Version4)
-	default:
-		return false
-	}
-}
-
-func (t Token) supportsVersion(version Version) bool {
-	for _, allowedVersion := range t.allowedVersions {
-		if version == allowedVersion {
-			return true
-		}
-	}
-
-	return false
 }

@@ -88,8 +88,7 @@ func TestFromMap(t *testing.T) {
 			"foo": "bar",
 			"baz": someStruct,
 		},
-		"",
-		[]Version{Version4},
+		nil,
 	)
 	require.NoError(t, err)
 
@@ -122,8 +121,7 @@ func TestJsonEncode(t *testing.T) {
 			"foo": "bar",
 			"baz": someStruct,
 		},
-		"",
-		[]Version{Version4},
+		nil,
 	)
 	require.NoError(t, err)
 
@@ -138,7 +136,7 @@ func TestJsonEncode(t *testing.T) {
 func TestJsonParse(t *testing.T) {
 	data := `{"foo":"bar","baz":{"Field1":"boo","Field2":3,"Field3":true}}`
 
-	token, err := NewTokenFromClaimsJson([]byte(data), "", []Version{Version4})
+	token, err := NewTokenFromClaimsJson([]byte(data), nil)
 	require.NoError(t, err)
 
 	type SomeStruct struct {
