@@ -15,7 +15,7 @@ func TestSignSelfConsistent(t *testing.T) {
 
 	someStruct := SomeStruct{"boo", 3, true}
 
-	token, err := NewToken(
+	token, err := MakeToken(
 		map[string]interface{}{
 			"foo": "bar",
 			"baz": someStruct,
@@ -50,7 +50,7 @@ func TestEncryptSelfConsistent(t *testing.T) {
 
 	someStruct := SomeStruct{"boo", 3, true}
 
-	token, err := NewToken(
+	token, err := MakeToken(
 		map[string]interface{}{
 			"foo": "bar",
 			"baz": someStruct,

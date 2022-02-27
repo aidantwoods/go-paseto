@@ -7,7 +7,7 @@ import (
 )
 
 func TestSomeString(t *testing.T) {
-	token := NewEmptyToken([]Version{Version4})
+	token := NewToken()
 
 	err := token.Set("foo", "bar")
 	require.NoError(t, err)
@@ -29,7 +29,7 @@ func TestSomeStruct(t *testing.T) {
 
 	someStruct := SomeStruct{"boo", 3, true}
 
-	token := NewEmptyToken([]Version{Version4})
+	token := NewToken()
 
 	err := token.Set("baz", someStruct)
 	require.NoError(t, err)
@@ -51,7 +51,7 @@ func TestSomeWrongType(t *testing.T) {
 
 	someStruct := SomeStruct{"boo", 3, true}
 
-	token := NewEmptyToken([]Version{Version4})
+	token := NewToken()
 
 	err := token.Set("baz", someStruct)
 	require.NoError(t, err)
@@ -63,7 +63,7 @@ func TestSomeWrongType(t *testing.T) {
 }
 
 func TestSomeWrongKey(t *testing.T) {
-	token := NewEmptyToken([]Version{Version4})
+	token := NewToken()
 
 	err := token.Set("foo", "bar")
 	require.NoError(t, err)
@@ -83,7 +83,7 @@ func TestFromMap(t *testing.T) {
 
 	someStruct := SomeStruct{"boo", 3, true}
 
-	token, err := NewToken(
+	token, err := MakeToken(
 		map[string]interface{}{
 			"foo": "bar",
 			"baz": someStruct,
@@ -116,7 +116,7 @@ func TestJsonEncode(t *testing.T) {
 
 	someStruct := SomeStruct{"boo", 3, true}
 
-	token, err := NewToken(
+	token, err := MakeToken(
 		map[string]interface{}{
 			"foo": "bar",
 			"baz": someStruct,

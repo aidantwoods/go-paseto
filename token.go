@@ -28,11 +28,11 @@ type Token struct {
 	footer []byte
 }
 
-func NewEmptyToken(allowedVersions []Version) Token {
+func NewToken() Token {
 	return Token{make(map[string]tokenValue), nil}
 }
 
-func NewToken(claims map[string]interface{}, footer []byte) (*Token, error) {
+func MakeToken(claims map[string]interface{}, footer []byte) (*Token, error) {
 	tokenValueClaims := make(map[string]tokenValue)
 
 	token := Token{tokenValueClaims, footer}
@@ -54,7 +54,7 @@ func NewTokenFromClaimsJson(claimsData []byte, footer []byte) (*Token, error) {
 		return nil, err
 	}
 
-	return NewToken(claims, footer)
+	return MakeToken(claims, footer)
 }
 
 func (t *Token) Set(key string, value interface{}) error {
