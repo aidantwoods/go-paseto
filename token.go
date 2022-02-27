@@ -129,7 +129,7 @@ func (t Token) ClaimsJson() ([]byte, error) {
 	return data, nil
 }
 
-func (t Token) V4Sign(key V4AsymmetricSecretKey, implicit []byte) (*Message, error) {
+func (t Token) V4Sign(key V4AsymmetricSecretKey, implicit []byte) (*string, error) {
 
 	var encodedClaims []byte
 	var err error
@@ -140,12 +140,12 @@ func (t Token) V4Sign(key V4AsymmetricSecretKey, implicit []byte) (*Message, err
 
 	packet := Packet{encodedClaims, []byte(t.footer)}
 
-	message := V4PublicSign(packet, key, implicit)
+	paseto := V4PublicSign(packet, key, implicit).Encoded()
 
-	return &message, nil
+	return &paseto, nil
 }
 
-func (t Token) V4Encrypt(key V4SymmetricKey, implicit []byte) (*Message, error) {
+func (t Token) V4Encrypt(key V4SymmetricKey, implicit []byte) (*string, error) {
 	var encodedClaims []byte
 	var err error
 
@@ -155,7 +155,7 @@ func (t Token) V4Encrypt(key V4SymmetricKey, implicit []byte) (*Message, error) 
 
 	packet := Packet{encodedClaims, []byte(t.footer)}
 
-	message := V4LocalEncrypt(packet, key, implicit)
+	paseto := V4LocalEncrypt(packet, key, implicit).Encoded()
 
-	return &message, nil
+	return &paseto, nil
 }

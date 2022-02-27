@@ -24,13 +24,15 @@ func TestSignSelfConsistent(t *testing.T) {
 	)
 	require.NoError(t, err)
 
+	parser := MakeParser(nil)
+
 	key := NewV4AsymmetricSecretKey()
 
-	message, err := token.V4Sign(key, nil)
+	signed, err := token.V4Sign(key, nil)
 	require.NoError(t, err)
-	require.NotNil(t, message)
+	require.NotNil(t, signed)
 
-	verifiedToken, err := message.V4Verify(key.Public(), nil)
+	verifiedToken, err := parser.ParseV4Public(key.Public(), *signed, nil)
 	require.NoError(t, err)
 
 	originalClaims, err := token.ClaimsJson()
@@ -59,13 +61,15 @@ func TestEncryptSelfConsistent(t *testing.T) {
 	)
 	require.NoError(t, err)
 
+	parser := MakeParser(nil)
+
 	key := NewV4SymmetricKey()
 
-	message, err := token.V4Encrypt(key, nil)
+	encrypted, err := token.V4Encrypt(key, nil)
 	require.NoError(t, err)
-	require.NotNil(t, message)
+	require.NotNil(t, encrypted)
 
-	verifiedToken, err := message.V4Decrypt(key, nil)
+	verifiedToken, err := parser.ParseV4Local(key, *encrypted, nil)
 	require.NoError(t, err)
 
 	originalClaims, err := token.ClaimsJson()
