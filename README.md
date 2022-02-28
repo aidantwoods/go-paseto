@@ -118,5 +118,9 @@ require.Equal(t,
 ```
 
 # Supported Paseto Versions
+## Version 2
+Version 2 is fully supported.
+## Version 3
+Version 3 supports only local mode (so far).
 ## Version 4
 Version 4 is fully supported.
