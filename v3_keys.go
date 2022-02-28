@@ -54,13 +54,14 @@ func V3SymmetricKeyFromHex(hexEncoded string) (V3SymmetricKey, error) {
 }
 
 func (k V3SymmetricKey) split(nonce [32]byte) (encKey [32]byte, authKey [48]byte, nonce2 [16]byte) {
-	var tmp [48]byte
 	kdf := hkdf.New(
 		sha512.New384,
 		k.material[:],
 		nil,
 		append([]byte("paseto-encryption-key"), nonce[:]...),
 	)
+
+	var tmp [48]byte
 	if _, err := io.ReadFull(kdf, tmp[:]); err != nil {
 		panic(err)
 	}
