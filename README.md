@@ -12,9 +12,7 @@ Paseto is everything you love about JOSE (JWT, JWE, JWS) without any of the
 * [What is Paseto?](#what-is-paseto)
   * [Key Differences between Paseto and JWT](#key-differences-between-paseto-and-jwt)
 * [Installation](#installation)
-  * [Requirements](#requirements)
-  * [Dependencies](#dependencies)
-* [Overview of the Swift library](#overview-of-the-swift-library)
+* [Overview of the Go library](#overview-of-the-go-library)
 * [Supported Paseto Versions](#supported-paseto-versions)
 
 # What is Paseto?
@@ -91,19 +89,17 @@ And the public key, given in hex is:
 Importing a public key, and then verifying a token:
 
 ```go
-publicKey, err := NewV4AsymmetricPublicKeyFromHex("1eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2") // this wil fail if given key in an invalid format
+publicKey, err := paseto.NewV4AsymmetricPublicKeyFromHex("1eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2") // this wil fail if given key in an invalid format
 signed := "v4.public.eyJkYXRhIjoidGhpcyBpcyBhIHNpZ25lZCBtZXNzYWdlIiwiZXhwIjoiMjAyMi0wMS0wMVQwMDowMDowMCswMDowMCJ9v3Jt8mx_TdM2ceTGoqwrh4yDFn0XsHvvV_D0DtwQxVrJEBMl0F2caAdgnpKlt4p7xBnx1HcO-SPo8FPp214HDw.eyJraWQiOiJ6VmhNaVBCUDlmUmYyc25FY1Q3Z0ZUaW9lQTlDT2NOeTlEZmdMMVc2MGhhTiJ9"
 
-parser := NewParser()
+parser := paseto.NewParserWithoutExpiryCheck() // only used because this example token has expired, use NewParser() to check expiry
 parser.
 token, err := parser.ParseV4Public(publicKey, signed, nil) // this will fail if either rules fail, or
-
-claimsJSON, _ := token.ClaimsJSON()
 
 // the following will succeed
 require.JSONEq(t,
     "{\"data\":\"this is a signed message\",\"exp\":\"2022-01-01T00:00:00+00:00\"}",
-    string(claimsJson),
+    string(token.ClaimsJSON()),
 )
 require.Equal(t,
     "{\"kid\":\"zVhMiPBP9fRf2snEcT7gFTioeA9COcNy9DfgL1W60haN\"}",
