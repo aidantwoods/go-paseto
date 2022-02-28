@@ -31,12 +31,9 @@ func v4PublicSign(packet packet, key V4AsymmetricSecretKey, implicit []byte) Mes
 }
 
 func v4PublicVerify(message Message, key V4AsymmetricPublicKey, implicit []byte) (packet, error) {
-	var payload v4PublicPayload
-	var ok bool
-
-	if payload, ok = message.p.(v4PublicPayload); message.Header() != V4Public.Header() || !ok {
-		var p packet
-		return p, errors.Errorf("Cannot decrypt message with header: %s", message.Header())
+	payload, ok := message.p.(v4PublicPayload)
+	if message.Header() != V4Public.Header() || !ok {
+		return packet{}, errors.Errorf("Cannot decrypt message with header: %s", message.Header())
 	}
 
 	header, footer := []byte(message.Header()), message.footer
@@ -45,16 +42,11 @@ func v4PublicVerify(message Message, key V4AsymmetricPublicKey, implicit []byte)
 	m2 := encoding.Pae(header, data, footer, implicit)
 
 	if !ed25519.Verify(key.material, m2, payload.signature[:]) {
-		var p packet
-		return p, errors.Errorf("Bad signature")
+		return packet{}, errors.Errorf("Bad signature")
 	}
 
 	return packet{data, footer}, nil
 }
-
-// func V4LocalEncrypt(p packet, key V4SymmetricKey, implicit []byte) Message {
-// 	return v4LocalEncrypt(p, key, implicit, nil)
-// }
 
 func v4LocalEncrypt(p packet, key V4SymmetricKey, implicit []byte, unitTestNonce []byte) Message {
 	var nonce [32]byte
@@ -95,12 +87,9 @@ func v4LocalEncrypt(p packet, key V4SymmetricKey, implicit []byte, unitTestNonce
 }
 
 func v4LocalDecrypt(message Message, key V4SymmetricKey, implicit []byte) (packet, error) {
-	var payload v4LocalPayload
-	var ok bool
-
-	if payload, ok = message.p.(v4LocalPayload); message.Header() != V4Local.Header() || !ok {
-		var p packet
-		return p, errors.Errorf("Cannot decrypt message with header: %s", message.Header())
+	payload, ok := message.p.(v4LocalPayload)
+	if message.Header() != V4Local.Header() || !ok {
+		return packet{}, errors.Errorf("Cannot decrypt message with header: %s", message.Header())
 	}
 
 	nonce, cipherText, givenTag := payload.nonce, payload.cipherText, payload.tag
@@ -120,8 +109,7 @@ func v4LocalDecrypt(message Message, key V4SymmetricKey, implicit []byte) (packe
 	hashing.GenericHash(preAuth, expectedTag[:], authKey[:])
 
 	if !hmac.Equal(expectedTag[:], givenTag[:]) {
-		var p packet
-		return p, errors.Errorf("Bad message authentication code")
+		return packet{}, errors.Errorf("Bad message authentication code")
 	}
 
 	plainText := make([]byte, len(cipherText))

@@ -16,18 +16,18 @@ func (p v3LocalPayload) bytes() []byte {
 
 func newV3LocalPayload(bytes []byte) (v3LocalPayload, error) {
 	if len(bytes) <= 32+48 {
-		var p v3LocalPayload
-		return p, errors.New("Payload is not long enough to by a valid Paseto message")
+		return v3LocalPayload{}, errors.New("Payload is not long enough to by a valid Paseto message")
 	}
 
 	macOffset := len(bytes) - 48
 
 	var nonce [32]byte
-	cipherText := make([]byte, macOffset-32)
-	var tag [48]byte
-
 	copy(nonce[:], bytes[0:32])
+
+	cipherText := make([]byte, macOffset-32)
 	copy(cipherText, bytes[32:macOffset])
+
+	var tag [48]byte
 	copy(tag[:], bytes[macOffset:])
 
 	return v3LocalPayload{nonce, cipherText, tag}, nil

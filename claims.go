@@ -15,23 +15,18 @@ type Rule func(token Token) error
 // token.
 func ForAudience(audience string) Rule {
 	return func(token Token) error {
-		var tAud *string
-		var err error
-
-		if tAud, err = token.GetAudience(); err != nil {
+		tAud, err := token.GetAudience()
+		if err != nil {
 			return err
 		}
 
-		tAudBytes := []byte(*tAud)
-		audBytes := []byte(audience)
-
-		if subtle.ConstantTimeCompare(tAudBytes, audBytes) == 1 {
+		if subtle.ConstantTimeCompare([]byte(tAud), []byte(audience)) == 1 {
 			return nil
 		}
 
 		return errors.New(
 			"this token is not intended for `" +
-				audience + "`. `" + *tAud + "` found",
+				audience + "`. `" + tAud + "` found",
 		)
 	}
 }
@@ -40,20 +35,15 @@ func ForAudience(audience string) Rule {
 // the token.
 func IdentifiedBy(identifier string) Rule {
 	return func(token Token) error {
-		var tJti *string
-		var err error
-
-		if tJti, err = token.GetJti(); err != nil {
+		tJti, err := token.GetJti()
+		if err != nil {
 			return err
 		}
 
-		tJtiBytes := []byte(*tJti)
-		jtiBytes := []byte(identifier)
-
-		if subtle.ConstantTimeCompare(tJtiBytes, jtiBytes) == 0 {
+		if subtle.ConstantTimeCompare([]byte(tJti), []byte(identifier)) == 0 {
 			return errors.New(
 				"this token is not identified by `" +
-					identifier + "`. `" + *tJti + "` found",
+					identifier + "`. `" + tJti + "` found",
 			)
 		}
 
@@ -64,20 +54,18 @@ func IdentifiedBy(identifier string) Rule {
 // IssuedBy requires that the given issuer matches the "iss" field of the token.
 func IssuedBy(issuer string) Rule {
 	return func(token Token) error {
-		var tIss *string
-		var err error
-
-		if tIss, err = token.GetIssuer(); err != nil {
+		tIss, err := token.GetIssuer()
+		if err != nil {
 			return err
 		}
 
-		tIssBytes := []byte(*tIss)
+		tIssBytes := []byte(tIss)
 		issBytes := []byte(issuer)
 
 		if subtle.ConstantTimeCompare(tIssBytes, issBytes) == 0 {
 			return errors.New(
 				"this token is not issued by `" +
-					issuer + "`. `" + *tIss + "` found",
+					issuer + "`. `" + tIss + "` found",
 			)
 		}
 
@@ -91,16 +79,12 @@ func IssuedBy(issuer string) Rule {
 // their presence.
 func NotExpired() Rule {
 	return func(token Token) error {
-		var exp *time.Time
-		var err error
-
-		if exp, err = token.GetExpiration(); err != nil {
+		exp, err := token.GetExpiration()
+		if err != nil {
 			return err
 		}
 
-		now := time.Now()
-
-		if now.After(*exp) {
+		if time.Now().After(exp) {
 			return errors.New("this token has expired")
 		}
 
@@ -111,21 +95,16 @@ func NotExpired() Rule {
 // Subject requires that the given subject matches the "sub" field of the token.
 func Subject(subject string) Rule {
 	return func(token Token) error {
-		var tSub *string
-		var err error
-
-		if tSub, err = token.GetSubject(); err != nil {
+		tSub, err := token.GetSubject()
+		if err != nil {
 			return err
 		}
 
-		tSubBytes := []byte(*tSub)
-		subBytes := []byte(subject)
-
-		if subtle.ConstantTimeCompare(tSubBytes, subBytes) == 1 {
+		if subtle.ConstantTimeCompare([]byte(tSub), []byte(subject)) == 1 {
 			return nil
 		}
 
-		return errors.New("this token is not related to `" + subject + "`. `" + *tSub + "` found")
+		return errors.New("this token is not related to `" + subject + "`. `" + tSub + "` found")
 	}
 }
 
@@ -134,29 +113,27 @@ func Subject(subject string) Rule {
 // at time "iat", and the token's not before time "nbf".
 func ValidAt(t time.Time) Rule {
 	return func(token Token) error {
-		var err error
-
-		var iat *time.Time
-		if iat, err = token.GetIssuedAt(); err != nil {
+		iat, err := token.GetIssuedAt()
+		if err != nil {
 			return err
 		}
-		if t.Before(*iat) {
+		if t.Before(iat) {
 			return errors.New("the ValidAt time is before this token was issued")
 		}
 
-		var nbf *time.Time
-		if nbf, err = token.GetNotBefore(); err != nil {
+		nbf, err := token.GetNotBefore()
+		if err != nil {
 			return err
 		}
-		if t.Before(*nbf) {
+		if t.Before(nbf) {
 			return errors.New("the ValidAt time is before this token's not before time")
 		}
 
-		var exp *time.Time
-		if exp, err = token.GetExpiration(); err != nil {
+		exp, err := token.GetExpiration()
+		if err != nil {
 			return err
 		}
-		if t.After(*exp) {
+		if t.After(exp) {
 			return errors.New("the ValidAt time is after this token expires")
 		}
 
@@ -166,67 +143,58 @@ func ValidAt(t time.Time) Rule {
 
 // GetAudience returns the token's "aud" field, or error if not found or not a
 // string.
-func (t Token) GetAudience() (*string, error) {
+func (t Token) GetAudience() (string, error) {
 	return t.GetString("aud")
 }
 
 // GetExpiration returns the token's "exp" field, or error if not found or not a
 // a RFC3339 compliant time.
-func (t Token) GetExpiration() (*time.Time, error) {
-	var expStr string
-
-	if err := t.Get("exp", &expStr); err != nil {
-		return nil, err
+func (t Token) GetExpiration() (time.Time, error) {
+	expStr, err := t.GetString("exp")
+	if err != nil {
+		return time.Time{}, err
 	}
 
-	exp, err := time.Parse(time.RFC3339, expStr)
-
-	return &exp, err
+	return time.Parse(time.RFC3339, expStr)
 }
 
 // GetIssuedAt returns the token's "iat" field, or error if not found or not a
 // a RFC3339 compliant time.
-func (t Token) GetIssuedAt() (*time.Time, error) {
-	var iatStr string
-
-	if err := t.Get("iat", &iatStr); err != nil {
-		return nil, err
+func (t Token) GetIssuedAt() (time.Time, error) {
+	iatStr, err := t.GetString("iat")
+	if err != nil {
+		return time.Time{}, err
 	}
 
-	iat, err := time.Parse(time.RFC3339, iatStr)
-
-	return &iat, err
+	return time.Parse(time.RFC3339, iatStr)
 }
 
 // GetIssuer returns the token's "iss" field, or error if not found or not a
 // string.
-func (t Token) GetIssuer() (*string, error) {
+func (t Token) GetIssuer() (string, error) {
 	return t.GetString("iss")
 }
 
 // GetJti returns the token's "jti" field, or error if not found or not a
 // string.
-func (t Token) GetJti() (*string, error) {
+func (t Token) GetJti() (string, error) {
 	return t.GetString("jti")
 }
 
 // GetNotBefore returns the token's "nbf" field, or error if not found or not a
 // a RFC3339 compliant time.
-func (t Token) GetNotBefore() (*time.Time, error) {
-	var nbfStr *string
-
-	if err := t.Get("nbf", &nbfStr); err != nil {
-		return nil, err
+func (t Token) GetNotBefore() (time.Time, error) {
+	nbfStr, err := t.GetString("nbf")
+	if err != nil {
+		return time.Time{}, err
 	}
 
-	nbf, err := time.Parse(time.RFC3339, *nbfStr)
-
-	return &nbf, err
+	return time.Parse(time.RFC3339, nbfStr)
 }
 
 // GetSubject returns the token's "sub" field, or error if not found or not a
 // string.
-func (t Token) GetSubject() (*string, error) {
+func (t Token) GetSubject() (string, error) {
 	return t.GetString("sub")
 }
 

@@ -36,9 +36,7 @@ func MakeToken(claims map[string]interface{}, footer []byte) (*Token, error) {
 // and returns a token with those claims, and the specified footer.
 func NewTokenFromClaimsJSON(claimsData []byte, footer []byte) (*Token, error) {
 	var claims map[string]interface{}
-	var err error
-
-	if err = json.Unmarshal(claimsData, &claims); err != nil {
+	if err := json.Unmarshal(claimsData, &claims); err != nil {
 		return nil, err
 	}
 
@@ -49,10 +47,8 @@ func NewTokenFromClaimsJSON(claimsData []byte, footer []byte) (*Token, error) {
 // be serialisable to JSON using encoding/json.
 // Set will check this and return an error if it is not serialisable.
 func (t *Token) Set(key string, value interface{}) error {
-	var v *tokenValue
-	var err error
-
-	if v, err = newTokenValue(value); err != nil {
+	v, err := newTokenValue(value)
+	if err != nil {
 		return errors.Wrapf(err, "could not set key `%s`", key)
 	}
 
@@ -64,11 +60,9 @@ func (t *Token) Set(key string, value interface{}) error {
 // Get gets the given key and writes the value into output, if present by
 // parsing the JSON using encoding/json.
 func (t Token) Get(key string, output interface{}) (err error) {
-	var v tokenValue
-	var ok bool
-
-	if v, ok = t.claims[key]; !ok {
-		return errors.Errorf("value for key `%s` not present in claims", key)
+	v, ok := t.claims[key]
+	if !ok {
+		return errors.Errorf("value for key `%s' not present in claims", key)
 	}
 
 	if err := json.Unmarshal(v.rawValue, &output); err != nil {
@@ -81,14 +75,13 @@ func (t Token) Get(key string, output interface{}) (err error) {
 
 // GetString returns the value for a given key as a string, or error if this
 // is not possible (cannot be a string, or value does not exist)
-func (t Token) GetString(key string) (*string, error) {
+func (t Token) GetString(key string) (string, error) {
 	var str string
-
 	if err := t.Get(key, &str); err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return &str, nil
+	return str, nil
 }
 
 // SetString sets the given key with value. If, for some reason, the provided
@@ -101,38 +94,33 @@ func (t *Token) SetString(key string, value string) {
 }
 
 // Claims gets the stored claims.
-func (t Token) Claims() (map[string]interface{}, error) {
+func (t Token) Claims() map[string]interface{} {
 	claims := make(map[string]interface{})
 
 	for key, value := range t.claims {
 		var claimValue interface{}
-
 		if err := json.Unmarshal(value.rawValue, &claimValue); err != nil {
-			return nil, err
+			// we only store claims that have gone through json.Marshal
+			// it is *very* unexpected if this is not reversable
+			panic(err)
 		}
 
 		claims[key] = claimValue
 	}
 
-	return claims, nil
+	return claims
 }
 
 // ClaimsJSON gets the stored claims as JSON.
-func (t Token) ClaimsJSON() ([]byte, error) {
-	var claims map[string]interface{}
-	var err error
-
-	if claims, err = t.Claims(); err != nil {
-		return nil, err
+func (t Token) ClaimsJSON() []byte {
+	data, err := json.Marshal(t.Claims())
+	if err != nil {
+		// these were *just* unmarshalled (and a top level of string keys added)
+		// it is *very* unexpected if this is not reversable
+		panic(err)
 	}
 
-	var data []byte
-
-	if data, err = json.Marshal(claims); err != nil {
-		return nil, err
-	}
-
-	return data, nil
+	return data
 }
 
 // Footer returns the token's footer
@@ -145,37 +133,18 @@ func (t *Token) SetFooter(footer []byte) {
 	t.footer = footer
 }
 
+func (t Token) packet() packet {
+	return packet{t.ClaimsJSON(), []byte(t.footer)}
+}
+
 // V2Sign signs the token, using the given key.
-func (t Token) V2Sign(key V2AsymmetricSecretKey) (*string, error) {
-
-	var encodedClaims []byte
-	var err error
-
-	if encodedClaims, err = t.ClaimsJSON(); err != nil {
-		return nil, err
-	}
-
-	p := packet{encodedClaims, []byte(t.footer)}
-
-	paseto := v2PublicSign(p, key).Encoded()
-
-	return &paseto, nil
+func (t Token) V2Sign(key V2AsymmetricSecretKey) string {
+	return v2PublicSign(t.packet(), key).Encoded()
 }
 
 // V2Encrypt signs the token, using the given key.
-func (t Token) V2Encrypt(key V2SymmetricKey) (*string, error) {
-	var encodedClaims []byte
-	var err error
-
-	if encodedClaims, err = t.ClaimsJSON(); err != nil {
-		return nil, err
-	}
-
-	p := packet{encodedClaims, []byte(t.footer)}
-
-	paseto := v2LocalEncrypt(p, key, nil).Encoded()
-
-	return &paseto, nil
+func (t Token) V2Encrypt(key V2SymmetricKey) string {
+	return v2LocalEncrypt(t.packet(), key, nil).Encoded()
 }
 
 // V3Encrypt signs the token, using the given key and implicit bytes. Implicit
@@ -183,19 +152,8 @@ func (t Token) V2Encrypt(key V2SymmetricKey) (*string, error) {
 // present in the final token (or its decrypted value).
 // Implicit must be reprovided for successful decryption, and can not be
 // recovered.
-func (t Token) V3Encrypt(key V3SymmetricKey, implicit []byte) (*string, error) {
-	var encodedClaims []byte
-	var err error
-
-	if encodedClaims, err = t.ClaimsJSON(); err != nil {
-		return nil, err
-	}
-
-	p := packet{encodedClaims, []byte(t.footer)}
-
-	paseto := v3LocalEncrypt(p, key, implicit, nil).Encoded()
-
-	return &paseto, nil
+func (t Token) V3Encrypt(key V3SymmetricKey, implicit []byte) string {
+	return v3LocalEncrypt(t.packet(), key, implicit, nil).Encoded()
 }
 
 // V4Sign signs the token, using the given key and implicit bytes. Implicit
@@ -203,20 +161,8 @@ func (t Token) V3Encrypt(key V3SymmetricKey, implicit []byte) (*string, error) {
 // the final token.
 // Implicit must be reprovided for successful verification, and can not be
 // recovered.
-func (t Token) V4Sign(key V4AsymmetricSecretKey, implicit []byte) (*string, error) {
-
-	var encodedClaims []byte
-	var err error
-
-	if encodedClaims, err = t.ClaimsJSON(); err != nil {
-		return nil, err
-	}
-
-	p := packet{encodedClaims, []byte(t.footer)}
-
-	paseto := v4PublicSign(p, key, implicit).Encoded()
-
-	return &paseto, nil
+func (t Token) V4Sign(key V4AsymmetricSecretKey, implicit []byte) string {
+	return v4PublicSign(t.packet(), key, implicit).Encoded()
 }
 
 // V4Encrypt signs the token, using the given key and implicit bytes. Implicit
@@ -224,19 +170,8 @@ func (t Token) V4Sign(key V4AsymmetricSecretKey, implicit []byte) (*string, erro
 // present in the final token (or its decrypted value).
 // Implicit must be reprovided for successful decryption, and can not be
 // recovered.
-func (t Token) V4Encrypt(key V4SymmetricKey, implicit []byte) (*string, error) {
-	var encodedClaims []byte
-	var err error
-
-	if encodedClaims, err = t.ClaimsJSON(); err != nil {
-		return nil, err
-	}
-
-	p := packet{encodedClaims, []byte(t.footer)}
-
-	paseto := v4LocalEncrypt(p, key, implicit, nil).Encoded()
-
-	return &paseto, nil
+func (t Token) V4Encrypt(key V4SymmetricKey, implicit []byte) string {
+	return v4LocalEncrypt(t.packet(), key, implicit, nil).Encoded()
 }
 
 type tokenValue struct {
@@ -246,10 +181,8 @@ type tokenValue struct {
 }
 
 func newTokenValue(value interface{}) (*tokenValue, error) {
-	var bytes []byte
-	var err error
-
-	if bytes, err = json.Marshal(value); err != nil {
+	bytes, err := json.Marshal(value)
+	if err != nil {
 		return nil, err
 	}
 

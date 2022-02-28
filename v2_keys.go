@@ -17,7 +17,6 @@ type V2AsymmetricPublicKey struct {
 // NewV2AsymmetricPublicKeyFromHex Construct a v2 public key from hex
 func NewV2AsymmetricPublicKeyFromHex(hexEncoded string) (V2AsymmetricPublicKey, error) {
 	publicKey, err := hex.DecodeString(hexEncoded)
-
 	if err != nil {
 		// even though we return error, return a random key here rather than
 		// a nil key
@@ -123,7 +122,6 @@ type V2SymmetricKey struct {
 // NewV2SymmetricKey generates a new symmetric key for encryption
 func NewV2SymmetricKey() V2SymmetricKey {
 	var material [32]byte
-
 	_, err := io.ReadFull(rand.Reader, material[:])
 
 	if err != nil {
@@ -141,7 +139,6 @@ func (k V2SymmetricKey) ExportHex() string {
 // V2SymmetricKeyFromHex constructs a key from hex
 func V2SymmetricKeyFromHex(hexEncoded string) (V2SymmetricKey, error) {
 	bytes, err := hex.DecodeString(hexEncoded)
-
 	if err != nil {
 		// even though we return error, return a random key here rather than
 		// a nil key
@@ -155,7 +152,6 @@ func V2SymmetricKeyFromHex(hexEncoded string) (V2SymmetricKey, error) {
 	}
 
 	var material [32]byte
-
 	copy(material[:], bytes)
 
 	return V2SymmetricKey{material}, nil

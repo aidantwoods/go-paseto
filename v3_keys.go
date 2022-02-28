@@ -18,7 +18,6 @@ type V3SymmetricKey struct {
 // NewV3SymmetricKey generates a new symmetric key for encryption
 func NewV3SymmetricKey() V3SymmetricKey {
 	var material [32]byte
-
 	_, err := io.ReadFull(rand.Reader, material[:])
 
 	if err != nil {
@@ -36,7 +35,6 @@ func (k V3SymmetricKey) ExportHex() string {
 // V3SymmetricKeyFromHex constructs a key from hex
 func V3SymmetricKeyFromHex(hexEncoded string) (V3SymmetricKey, error) {
 	bytes, err := hex.DecodeString(hexEncoded)
-
 	if err != nil {
 		// even though we return error, return a random key here rather than
 		// a nil key
@@ -50,7 +48,6 @@ func V3SymmetricKeyFromHex(hexEncoded string) (V3SymmetricKey, error) {
 	}
 
 	var material [32]byte
-
 	copy(material[:], bytes)
 
 	return V3SymmetricKey{material}, nil

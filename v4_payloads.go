@@ -17,14 +17,13 @@ func newV4PublicPayload(bytes []byte) (v4PublicPayload, error) {
 	signatureOffset := len(bytes) - 64
 
 	if signatureOffset < 0 {
-		var p v4PublicPayload
-		return p, errors.New("Payload is not long enough to by a valid Paseto message")
+		return v4PublicPayload{}, errors.New("Payload is not long enough to by a valid Paseto message")
 	}
 
 	message := make([]byte, len(bytes)-64)
-	var signature [64]byte
-
 	copy(message, bytes[:signatureOffset])
+
+	var signature [64]byte
 	copy(signature[:], bytes[signatureOffset:])
 
 	return v4PublicPayload{message, signature}, nil
@@ -42,18 +41,18 @@ func (p v4LocalPayload) bytes() []byte {
 
 func newV4LocalPayload(bytes []byte) (v4LocalPayload, error) {
 	if len(bytes) <= 32+32 {
-		var p v4LocalPayload
-		return p, errors.New("Payload is not long enough to by a valid Paseto message")
+		return v4LocalPayload{}, errors.New("Payload is not long enough to by a valid Paseto message")
 	}
 
 	macOffset := len(bytes) - 32
 
 	var nonce [32]byte
-	cipherText := make([]byte, macOffset-32)
-	var tag [32]byte
-
 	copy(nonce[:], bytes[0:32])
+
+	cipherText := make([]byte, macOffset-32)
 	copy(cipherText, bytes[32:macOffset])
+
+	var tag [32]byte
 	copy(tag[:], bytes[macOffset:])
 
 	return v4LocalPayload{nonce, cipherText, tag}, nil

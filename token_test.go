@@ -119,12 +119,10 @@ func TestJsonEncode(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	data, err := token.ClaimsJSON()
-	require.NoError(t, err)
-
-	expected := `{"foo":"bar","baz":{"Field1":"boo","Field2":3,"Field3":true}}`
-
-	require.JSONEq(t, expected, string(data))
+	require.JSONEq(t,
+		`{"foo":"bar","baz":{"Field1":"boo","Field2":3,"Field3":true}}`,
+		string(token.ClaimsJSON()),
+	)
 }
 
 func TestJsonParse(t *testing.T) {
@@ -153,8 +151,5 @@ func TestJsonParse(t *testing.T) {
 	expectedStruct := SomeStruct{"boo", 3, true}
 	require.Equal(t, expectedStruct, outputStruct)
 
-	encodedData, err := token.ClaimsJSON()
-	require.NoError(t, err)
-
-	require.JSONEq(t, data, string(encodedData))
+	require.JSONEq(t, data, string(token.ClaimsJSON()))
 }

@@ -22,13 +22,11 @@ func TestAllClaimsPassV2(t *testing.T) {
 	key := NewV2SymmetricKey()
 	secretKey := NewV2AsymmetricSecretKey()
 
-	encrypted, err := token.V2Encrypt(key)
-	require.NoError(t, err)
+	encrypted := token.V2Encrypt(key)
 
-	signed, err := token.V2Sign(secretKey)
-	require.NoError(t, err)
+	signed := token.V2Sign(secretKey)
 
-	parser := MakeParser(nil)
+	parser := NewParser()
 	parser.AddRule(ForAudience("a"))
 	parser.AddRule(IdentifiedBy("b"))
 	parser.AddRule(IssuedBy("c"))
@@ -36,10 +34,10 @@ func TestAllClaimsPassV2(t *testing.T) {
 	parser.AddRule(Subject("d"))
 	parser.AddRule(ValidAt(time.Now().Add(30 * time.Second)))
 
-	_, err = parser.ParseV2Local(key, *encrypted)
+	_, err := parser.ParseV2Local(key, encrypted)
 	require.NoError(t, err)
 
-	_, err = parser.ParseV2Public(secretKey.Public(), *signed)
+	_, err = parser.ParseV2Public(secretKey.Public(), signed)
 	require.NoError(t, err)
 }
 
@@ -57,10 +55,9 @@ func TestAllClaimsPassV3(t *testing.T) {
 
 	key := NewV3SymmetricKey()
 
-	encrypted, err := token.V3Encrypt(key, nil)
-	require.NoError(t, err)
+	encrypted := token.V3Encrypt(key, nil)
 
-	parser := MakeParser(nil)
+	parser := NewParser()
 	parser.AddRule(ForAudience("a"))
 	parser.AddRule(IdentifiedBy("b"))
 	parser.AddRule(IssuedBy("c"))
@@ -68,7 +65,7 @@ func TestAllClaimsPassV3(t *testing.T) {
 	parser.AddRule(Subject("d"))
 	parser.AddRule(ValidAt(time.Now().Add(30 * time.Second)))
 
-	_, err = parser.ParseV3Local(key, *encrypted, nil)
+	_, err := parser.ParseV3Local(key, encrypted, nil)
 	require.NoError(t, err)
 }
 
@@ -87,13 +84,11 @@ func TestAllClaimsPassV4(t *testing.T) {
 	key := NewV4SymmetricKey()
 	secretKey := NewV4AsymmetricSecretKey()
 
-	encrypted, err := token.V4Encrypt(key, nil)
-	require.NoError(t, err)
+	encrypted := token.V4Encrypt(key, nil)
 
-	signed, err := token.V4Sign(secretKey, nil)
-	require.NoError(t, err)
+	signed := token.V4Sign(secretKey, nil)
 
-	parser := MakeParser(nil)
+	parser := NewParser()
 	parser.AddRule(ForAudience("a"))
 	parser.AddRule(IdentifiedBy("b"))
 	parser.AddRule(IssuedBy("c"))
@@ -101,10 +96,10 @@ func TestAllClaimsPassV4(t *testing.T) {
 	parser.AddRule(Subject("d"))
 	parser.AddRule(ValidAt(time.Now().Add(30 * time.Second)))
 
-	_, err = parser.ParseV4Local(key, *encrypted, nil)
+	_, err := parser.ParseV4Local(key, encrypted, nil)
 	require.NoError(t, err)
 
-	_, err = parser.ParseV4Public(secretKey.Public(), *signed, nil)
+	_, err = parser.ParseV4Public(secretKey.Public(), signed, nil)
 	require.NoError(t, err)
 }
 
@@ -118,13 +113,12 @@ func TestFutureIat(t *testing.T) {
 
 	key := NewV4SymmetricKey()
 
-	encrypted, err := token.V4Encrypt(key, nil)
-	require.NoError(t, err)
+	encrypted := token.V4Encrypt(key, nil)
 
-	parser := MakeParser(nil)
+	parser := NewParser()
 	parser.AddRule(ValidAt(time.Now().Add(30 * time.Second)))
 
-	_, err = parser.ParseV4Local(key, *encrypted, nil)
+	_, err := parser.ParseV4Local(key, encrypted, nil)
 	require.Error(t, err)
 }
 
@@ -138,13 +132,12 @@ func TestFutureNbf(t *testing.T) {
 
 	key := NewV4SymmetricKey()
 
-	encrypted, err := token.V4Encrypt(key, nil)
-	require.NoError(t, err)
+	encrypted := token.V4Encrypt(key, nil)
 
-	parser := MakeParser(nil)
+	parser := NewParser()
 	parser.AddRule(ValidAt(time.Now().Add(30 * time.Second)))
 
-	_, err = parser.ParseV4Local(key, *encrypted, nil)
+	_, err := parser.ParseV4Local(key, encrypted, nil)
 	require.Error(t, err)
 }
 
@@ -158,12 +151,11 @@ func TestPastExp(t *testing.T) {
 
 	key := NewV4SymmetricKey()
 
-	encrypted, err := token.V4Encrypt(key, nil)
-	require.NoError(t, err)
+	encrypted := token.V4Encrypt(key, nil)
 
-	parser := MakeParser(nil)
+	parser := NewParser()
 	parser.AddRule(ValidAt(time.Now().Add(30 * time.Second)))
 
-	_, err = parser.ParseV4Local(key, *encrypted, nil)
+	_, err := parser.ParseV4Local(key, encrypted, nil)
 	require.Error(t, err)
 }

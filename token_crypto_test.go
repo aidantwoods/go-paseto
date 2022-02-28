@@ -28,16 +28,14 @@ func TestSignSelfConsistent(t *testing.T) {
 
 	key := NewV4AsymmetricSecretKey()
 
-	signed, err := token.V4Sign(key, nil)
-	require.NoError(t, err)
-	require.NotNil(t, signed)
+	signed := token.V4Sign(key, nil)
 
-	verifiedToken, err := parser.ParseV4Public(key.Public(), *signed, nil)
+	verifiedToken, err := parser.ParseV4Public(key.Public(), signed, nil)
 	require.NoError(t, err)
 
-	originalClaims, err := token.ClaimsJSON()
+	originalClaims := token.ClaimsJSON()
 	require.NoError(t, err)
-	verifiedClaims, err := verifiedToken.ClaimsJSON()
+	verifiedClaims := verifiedToken.ClaimsJSON()
 	require.NoError(t, err)
 
 	require.JSONEq(t, string(originalClaims), string(verifiedClaims))
@@ -65,17 +63,13 @@ func TestEncryptSelfConsistent(t *testing.T) {
 
 	key := NewV4SymmetricKey()
 
-	encrypted, err := token.V4Encrypt(key, nil)
-	require.NoError(t, err)
-	require.NotNil(t, encrypted)
+	encrypted := token.V4Encrypt(key, nil)
 
-	verifiedToken, err := parser.ParseV4Local(key, *encrypted, nil)
+	verifiedToken, err := parser.ParseV4Local(key, encrypted, nil)
 	require.NoError(t, err)
 
-	originalClaims, err := token.ClaimsJSON()
-	require.NoError(t, err)
-	verifiedClaims, err := verifiedToken.ClaimsJSON()
-	require.NoError(t, err)
+	originalClaims := token.ClaimsJSON()
+	verifiedClaims := verifiedToken.ClaimsJSON()
 
 	require.JSONEq(t, string(originalClaims), string(verifiedClaims))
 }
@@ -89,8 +83,7 @@ func TestReadmePublicExample(t *testing.T) {
 	token, err := parser.ParseV4Public(publicKey, signed, nil)
 	require.NoError(t, err)
 
-	claimsJSON, err := token.ClaimsJSON()
-	require.NoError(t, err)
+	claimsJSON := token.ClaimsJSON()
 
 	require.JSONEq(t,
 		"{\"data\":\"this is a signed message\",\"exp\":\"2022-01-01T00:00:00+00:00\"}",

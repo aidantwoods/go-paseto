@@ -20,35 +20,27 @@ type Message struct {
 // token cannot be parsed, will return an error instead.
 func NewMessage(protocol Protocol, token string) (Message, error) {
 	header, encodedPayload, encodedFooter, err := deconstructToken(token)
-
 	if err != nil {
-		var m Message
-		return m, err
+		return Message{}, err
 	}
 
 	if header != protocol.Header() {
-		var m Message
-		return m, errors.Errorf("Message header is not valid with the given purpose, expected %s got %s", protocol.Header(), header)
+		return Message{}, errors.Errorf("Message header is not valid with the given purpose, expected %s got %s", protocol.Header(), header)
 	}
 
-	var payloadBytes []byte
-
-	if payloadBytes, err = encoding.Decode(encodedPayload); err != nil {
-		var m Message
-		return m, err
+	payloadBytes, err := encoding.Decode(encodedPayload)
+	if err != nil {
+		return Message{}, err
 	}
 
-	var footer []byte
-
-	if footer, err = encoding.Decode(encodedFooter); err != nil {
-		var m Message
-		return m, err
+	footer, err := encoding.Decode(encodedFooter)
+	if err != nil {
+		return Message{}, err
 	}
 
-	var payload payload
-	if payload, err = protocol.newPayload(payloadBytes); err != nil {
-		var m Message
-		return m, err
+	payload, err := protocol.newPayload(payloadBytes)
+	if err != nil {
+		return Message{}, err
 	}
 
 	return newMessageFromPayload(payload, footer), nil
@@ -78,7 +70,7 @@ func (m Message) Encoded() string {
 
 func newMessageFromPayload(payload payload, footer []byte) Message {
 	if protocol, err := protocolForPayload(payload); err == nil {
-		return Message{*protocol, payload, footer}
+		return Message{protocol, payload, footer}
 	}
 
 	// Assume internal callers won't construct bad payloads

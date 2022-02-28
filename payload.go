@@ -6,23 +6,19 @@ type payload interface {
 	bytes() []byte
 }
 
-func protocolForPayload(payload payload) (*Protocol, error) {
-	v2Local, v2Public := V2Local, V2Public
-	v3Local := V3Local
-	v4Local, v4Public := V4Local, V4Public
-
+func protocolForPayload(payload payload) (Protocol, error) {
 	switch payload.(type) {
 	default:
-		return nil, errors.New("Unsupported Payload")
+		return Protocol{}, errors.New("Unsupported Payload")
 	case v2LocalPayload:
-		return &v2Local, nil
+		return V2Local, nil
 	case v2PublicPayload:
-		return &v2Public, nil
+		return V2Public, nil
 	case v3LocalPayload:
-		return &v3Local, nil
+		return V3Local, nil
 	case v4LocalPayload:
-		return &v4Local, nil
+		return V4Local, nil
 	case v4PublicPayload:
-		return &v4Public, nil
+		return V4Public, nil
 	}
 }
