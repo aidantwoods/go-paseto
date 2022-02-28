@@ -24,7 +24,7 @@ func TestSignSelfConsistent(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	parser := NewParser()
+	parser := NewParserWithoutExpiryCheck()
 
 	key := NewV4AsymmetricSecretKey()
 
@@ -59,7 +59,7 @@ func TestEncryptSelfConsistent(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	parser := NewParser()
+	parser := NewParserWithoutExpiryCheck()
 
 	key := NewV4SymmetricKey()
 
@@ -78,7 +78,7 @@ func TestReadmePublicExample(t *testing.T) {
 	publicKey, _ := NewV4AsymmetricPublicKeyFromHex("1eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2")
 	signed := "v4.public.eyJkYXRhIjoidGhpcyBpcyBhIHNpZ25lZCBtZXNzYWdlIiwiZXhwIjoiMjAyMi0wMS0wMVQwMDowMDowMCswMDowMCJ9v3Jt8mx_TdM2ceTGoqwrh4yDFn0XsHvvV_D0DtwQxVrJEBMl0F2caAdgnpKlt4p7xBnx1HcO-SPo8FPp214HDw.eyJraWQiOiJ6VmhNaVBCUDlmUmYyc25FY1Q3Z0ZUaW9lQTlDT2NOeTlEZmdMMVc2MGhhTiJ9"
 
-	parser := NewParser()
+	parser := NewParserWithoutExpiryCheck()
 
 	token, err := parser.ParseV4Public(publicKey, signed, nil)
 	require.NoError(t, err)

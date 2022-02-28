@@ -12,6 +12,11 @@ type Parser struct {
 
 // NewParser returns a parser with NotExpired rule preloaded.
 func NewParser() Parser {
+	return Parser{[]Rule{NotExpired()}}
+}
+
+// NewParserWithoutExpiryCheck returns a parser with no currently set rules.
+func NewParserWithoutExpiryCheck() Parser {
 	return Parser{nil}
 }
 
