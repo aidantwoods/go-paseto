@@ -43,9 +43,7 @@ go get -u github.com/aidantwoods/go-paseto
 
 # Overview of the Go library
 
-Creating a token:
-
-Okay, now let's create a token:
+Okay, let's create a token:
 ```go
 token := NewToken()
 
