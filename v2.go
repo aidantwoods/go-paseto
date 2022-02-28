@@ -75,14 +75,14 @@ func v2LocalDecrypt(message Message, key V2SymmetricKey) (packet, error) {
 
 	nonce, cipherText := payload.nonce, payload.cipherText
 
+	header := []byte(message.Header())
+
+	preAuth := encoding.Pae(header, nonce[:], message.footer)
+
 	cipher, err := chacha20poly1305.NewX(key.material[:])
 	if err != nil {
 		panic("Cannot construct cipher")
 	}
-
-	header := []byte(message.Header())
-
-	preAuth := encoding.Pae(header, nonce[:], message.footer)
 
 	plainText, err := cipher.Open(nil, nonce[:], cipherText, preAuth)
 	if err != nil {

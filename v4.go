@@ -18,7 +18,6 @@ func v4PublicSign(packet packet, key V4AsymmetricSecretKey, implicit []byte) Mes
 	m2 := encoding.Pae(header, data, footer, implicit)
 
 	sig := ed25519.Sign(key.material, m2)
-
 	if len(sig) != 64 {
 		panic("Bad signature length")
 	}
@@ -54,7 +53,6 @@ func v4LocalEncrypt(p packet, key V4SymmetricKey, implicit []byte, unitTestNonce
 	encKey, authKey, nonce2 := key.split(nonce)
 
 	cipher, err := chacha20.NewUnauthenticatedCipher(encKey[:], nonce2[:])
-
 	if err != nil {
 		panic("Cannot construct cipher")
 	}
@@ -81,12 +79,6 @@ func v4LocalDecrypt(message Message, key V4SymmetricKey, implicit []byte) (packe
 	nonce, cipherText, givenTag := payload.nonce, payload.cipherText, payload.tag
 	encKey, authKey, nonce2 := key.split(nonce)
 
-	cipher, err := chacha20.NewUnauthenticatedCipher(encKey[:], nonce2[:])
-
-	if err != nil {
-		panic("Cannot construct cipher")
-	}
-
 	header := []byte(message.Header())
 
 	preAuth := encoding.Pae(header, nonce[:], cipherText, message.footer, implicit)
@@ -96,6 +88,11 @@ func v4LocalDecrypt(message Message, key V4SymmetricKey, implicit []byte) (packe
 
 	if !hmac.Equal(expectedTag[:], givenTag[:]) {
 		return packet{}, errors.Errorf("Bad message authentication code")
+	}
+
+	cipher, err := chacha20.NewUnauthenticatedCipher(encKey[:], nonce2[:])
+	if err != nil {
+		panic("Cannot construct cipher")
 	}
 
 	plainText := make([]byte, len(cipherText))

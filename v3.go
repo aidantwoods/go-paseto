@@ -40,21 +40,13 @@ func v3LocalEncrypt(p packet, key V3SymmetricKey, implicit []byte, unitTestNonce
 }
 
 func v3LocalDecrypt(message Message, key V3SymmetricKey, implicit []byte) (packet, error) {
-	var payload v3LocalPayload
-	var ok bool
-
-	if payload, ok = message.p.(v3LocalPayload); message.Header() != V3Local.Header() || !ok {
-		var p packet
-		return p, errors.Errorf("Cannot decrypt message with header: %s", message.Header())
+	payload, ok := message.p.(v3LocalPayload)
+	if message.Header() != V3Local.Header() || !ok {
+		return packet{}, errors.Errorf("Cannot decrypt message with header: %s", message.Header())
 	}
 
 	nonce, cipherText, givenTag := payload.nonce, payload.cipherText, payload.tag
 	encKey, authKey, nonce2 := key.split(nonce)
-
-	blockCipher, err := aes.NewCipher(encKey[:])
-	if err != nil {
-		panic("Cannot construct cipher")
-	}
 
 	header := []byte(message.Header())
 
@@ -70,6 +62,11 @@ func v3LocalDecrypt(message Message, key V3SymmetricKey, implicit []byte) (packe
 	if !hmac.Equal(expectedTag[:], givenTag[:]) {
 		var p packet
 		return p, errors.Errorf("Bad message authentication code")
+	}
+
+	blockCipher, err := aes.NewCipher(encKey[:])
+	if err != nil {
+		panic("Cannot construct cipher")
 	}
 
 	plainText := make([]byte, len(cipherText))
