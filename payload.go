@@ -7,12 +7,17 @@ type payload interface {
 }
 
 func protocolForPayload(payload payload) (*Protocol, error) {
+	v3Local := V3Local
+	v4Local, v4Public := V4Local, V4Public
+
 	switch payload.(type) {
 	default:
 		return nil, errors.New("Unsupported Payload")
+	case v3LocalPayload:
+		return &v3Local, nil
 	case v4LocalPayload:
-		return &V4Local, nil
+		return &v4Local, nil
 	case v4PublicPayload:
-		return &V4Public, nil
+		return &v4Public, nil
 	}
 }

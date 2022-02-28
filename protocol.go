@@ -6,6 +6,8 @@ import (
 )
 
 var (
+	// V3Local represents a v3 protocol in local mode
+	V3Local = Protocol{Version3, Local}
 	// V4Local represents a v4 protocol in local mode
 	V4Local = Protocol{Version4, Local}
 	// V4Public represents a v4 protocol in public mode
@@ -21,11 +23,19 @@ type Protocol struct {
 // NewProtocol creates a new protocol with a given version and purpose (both
 // must be valid)
 func NewProtocol(version Version, purpose Purpose) (*Protocol, error) {
+	v3Local := V3Local
 	v4Local, v4Public := V4Local, V4Public
 
 	switch version {
 	default:
 		return nil, errors.New("Unsupported PASETO version")
+	case Version3:
+		switch purpose {
+		default:
+			return nil, errors.New("Unsupported PASETO purpose")
+		case Local:
+			return &v3Local, nil
+		}
 	case Version4:
 		switch purpose {
 		default:
@@ -58,6 +68,14 @@ func (p Protocol) newPayload(bytes []byte) (payload, error) {
 	default:
 		var p payload
 		return p, errors.New("Unsupported PASETO version")
+	case Version3:
+		switch p.purpose {
+		default:
+			var p payload
+			return p, errors.New("Unsupported PASETO purpose")
+		case Local:
+			return newV3LocalPayload(bytes)
+		}
 	case Version4:
 		switch p.purpose {
 		default:
