@@ -99,7 +99,6 @@ func (p Parser) ParseV4Local(key V4SymmetricKey, tainted string, implicit []byte
 // any parser rules. Error if parsing, verification, or any rule fails.
 func (p Parser) ParseV4Public(key V4AsymmetricPublicKey, tainted string, implicit []byte) (*Token, error) {
 	message, err := NewMessage(V4Public, tainted)
-
 	if err != nil {
 		return nil, err
 	}
@@ -110,6 +109,17 @@ func (p Parser) ParseV4Public(key V4AsymmetricPublicKey, tainted string, implici
 	}
 
 	return p.validate(*token)
+}
+
+// UnsafeParseFooter returns the footer of a Paseto message. Beware that this
+// footer is not cryptographically verified at this stage.
+func (p Parser) UnsafeParseFooter(protocol Protocol, tainted string) ([]byte, error) {
+	message, err := NewMessage(protocol, tainted)
+	if err != nil {
+		return nil, err
+	}
+
+	return message.UnsafeFooter(), nil
 }
 
 // SetRules will overwrite any currently set rules with those specified.
