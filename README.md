@@ -76,13 +76,9 @@ if err != nil {
 }
 ```
 
-Lastly, let's suppose that we do not start
-with any objects. How do we create messages
-and keys from strings or data?
+To handle a recieved token, let's use an example from Paseto's test vectors:
 
-Let's use the example from Paseto's test vectors:
-
-The Paseto token is as follows (as a string/data)
+The Paseto token is as follows
 ```
 v4.public.eyJkYXRhIjoidGhpcyBpcyBhIHNpZ25lZCBtZXNzYWdlIiwiZXhwIjoiMjAyMi0wMS0wMVQwMDowMDowMCswMDowMCJ9v3Jt8mx_TdM2ceTGoqwrh4yDFn0XsHvvV_D0DtwQxVrJEBMl0F2caAdgnpKlt4p7xBnx1HcO-SPo8FPp214HDw.eyJraWQiOiJ6VmhNaVBCUDlmUmYyc25FY1Q3Z0ZUaW9lQTlDT2NOeTlEZmdMMVc2MGhhTiJ9
 ```
@@ -92,7 +88,7 @@ And the public key, given in hex is:
 1eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2
 ```
 
-To produce a token, use the following:
+Importing a public key, and then verifying a token:
 
 ```go
 publicKey, err := NewV4AsymmetricPublicKeyFromHex("1eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2") // this wil fail if given key in an invalid format
