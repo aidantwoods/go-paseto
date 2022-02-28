@@ -7,7 +7,72 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAllClaimsPass(t *testing.T) {
+func TestAllClaimsPassV2(t *testing.T) {
+	token := NewToken()
+
+	token.SetAudience("a")
+	token.SetJti("b")
+	token.SetIssuer("c")
+	token.SetExpiration(time.Now().Add(time.Minute))
+	token.SetSubject("d")
+
+	token.SetNotBefore(time.Now().Add(25 * time.Second))
+	token.SetIssuedAt(time.Now())
+
+	key := NewV2SymmetricKey()
+	secretKey := NewV2AsymmetricSecretKey()
+
+	encrypted, err := token.V2Encrypt(key)
+	require.NoError(t, err)
+
+	signed, err := token.V2Sign(secretKey)
+	require.NoError(t, err)
+
+	parser := MakeParser(nil)
+	parser.AddRule(ForAudience("a"))
+	parser.AddRule(IdentifiedBy("b"))
+	parser.AddRule(IssuedBy("c"))
+	parser.AddRule(NotExpired())
+	parser.AddRule(Subject("d"))
+	parser.AddRule(ValidAt(time.Now().Add(30 * time.Second)))
+
+	_, err = parser.ParseV2Local(key, *encrypted)
+	require.NoError(t, err)
+
+	_, err = parser.ParseV2Public(secretKey.Public(), *signed)
+	require.NoError(t, err)
+}
+
+func TestAllClaimsPassV3(t *testing.T) {
+	token := NewToken()
+
+	token.SetAudience("a")
+	token.SetJti("b")
+	token.SetIssuer("c")
+	token.SetExpiration(time.Now().Add(time.Minute))
+	token.SetSubject("d")
+
+	token.SetNotBefore(time.Now().Add(25 * time.Second))
+	token.SetIssuedAt(time.Now())
+
+	key := NewV3SymmetricKey()
+
+	encrypted, err := token.V3Encrypt(key, nil)
+	require.NoError(t, err)
+
+	parser := MakeParser(nil)
+	parser.AddRule(ForAudience("a"))
+	parser.AddRule(IdentifiedBy("b"))
+	parser.AddRule(IssuedBy("c"))
+	parser.AddRule(NotExpired())
+	parser.AddRule(Subject("d"))
+	parser.AddRule(ValidAt(time.Now().Add(30 * time.Second)))
+
+	_, err = parser.ParseV3Local(key, *encrypted, nil)
+	require.NoError(t, err)
+}
+
+func TestAllClaimsPassV4(t *testing.T) {
 	token := NewToken()
 
 	token.SetAudience("a")
