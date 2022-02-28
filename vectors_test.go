@@ -27,6 +27,91 @@ type TestVector struct {
 	ImplicitAssertation string `json:"implicit-assertion"`
 }
 
+func TestV2(t *testing.T) {
+	data, err := os.ReadFile("test-vectors/v2.json")
+	require.NoError(t, err)
+
+	var tests TestVectors
+	err = json.Unmarshal(data, &tests)
+	require.NoError(t, err)
+
+	for _, test := range tests.Tests {
+		t.Run(test.Name, func(t *testing.T) {
+			var decoded packet
+
+			switch test.Key {
+			// Local mode
+			default:
+				sk, err := V2SymmetricKeyFromHex(test.Key)
+				require.NoError(t, err)
+
+				message, err := NewMessage(V2Local, test.Token)
+				if test.ExpectFail {
+					require.Error(t, err)
+					return
+				}
+				require.NoError(t, err)
+
+				decoded, err = v2LocalDecrypt(message, sk)
+				if test.ExpectFail {
+					require.Error(t, err)
+					return
+				}
+				require.NoError(t, err)
+
+			// Public mode
+			case "":
+				pk, err := NewV2AsymmetricPublicKeyFromHex(test.PublicKey)
+				require.NoError(t, err)
+
+				message, err := NewMessage(V2Public, test.Token)
+				if test.ExpectFail {
+					require.Error(t, err)
+					return
+				}
+				require.NoError(t, err)
+
+				decoded, err = v2PublicVerify(message, pk)
+				if test.ExpectFail {
+					require.Error(t, err)
+					return
+				}
+				require.NoError(t, err)
+			}
+
+			require.Equal(t, test.Payload, string(decoded.content))
+			require.Equal(t, test.Footer, string(decoded.footer))
+
+			packet := newPacket([]byte(test.Payload), []byte(test.Footer))
+
+			switch test.Key {
+			// Local mode
+			default:
+				sk, err := V2SymmetricKeyFromHex(test.Key)
+				require.NoError(t, err)
+
+				unitTestNonce, err := hex.DecodeString(test.Nonce)
+				require.NoError(t, err)
+
+				encrypted := v2LocalEncrypt(packet, sk, unitTestNonce)
+				require.NoError(t, err)
+
+				require.Equal(t, test.Token, encrypted.Encoded())
+
+			// Public mode
+			case "":
+				sk, err := NewV2AsymmetricSecretKeyFromHex(test.SecretKey)
+				require.NoError(t, err)
+
+				signed := v2PublicSign(packet, sk)
+				require.NoError(t, err)
+
+				require.Equal(t, test.Token, signed.Encoded())
+			}
+		})
+	}
+}
+
 func TestV3(t *testing.T) {
 	data, err := os.ReadFile("test-vectors/v3.json")
 	require.NoError(t, err)
