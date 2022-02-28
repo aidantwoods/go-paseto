@@ -26,6 +26,60 @@ func MakeParser(rules []Rule) Parser {
 	return Parser{rules}
 }
 
+// ParseV2Local will parse and decrypt a v2 local paseto and validate against
+// any parser rules. Error if parsing, decryption, or any rule fails.
+func (p Parser) ParseV2Local(key V2SymmetricKey, tainted string) (*Token, error) {
+	var message Message
+	var err error
+
+	if message, err = NewMessage(V2Local, tainted); err != nil {
+		return nil, err
+	}
+
+	var token *Token
+	if token, err = message.V2Decrypt(key); err != nil {
+		return nil, err
+	}
+
+	return p.validate(*token)
+}
+
+// ParseV2Public will parse and verify a v2 public paseto and validate against
+// any parser rules. Error if parsing, verification, or any rule fails.
+func (p Parser) ParseV2Public(key V2AsymmetricPublicKey, tainted string) (*Token, error) {
+	var message Message
+	var err error
+
+	if message, err = NewMessage(V2Public, tainted); err != nil {
+		return nil, err
+	}
+
+	var token *Token
+	if token, err = message.V2Verify(key); err != nil {
+		return nil, err
+	}
+
+	return p.validate(*token)
+}
+
+// ParseV3Local will parse and decrypt a v3 local paseto and validate against
+// any parser rules. Error if parsing, decryption, or any rule fails.
+func (p Parser) ParseV3Local(key V3SymmetricKey, tainted string, implicit []byte) (*Token, error) {
+	var message Message
+	var err error
+
+	if message, err = NewMessage(V3Local, tainted); err != nil {
+		return nil, err
+	}
+
+	var token *Token
+	if token, err = message.V3Decrypt(key, implicit); err != nil {
+		return nil, err
+	}
+
+	return p.validate(*token)
+}
+
 // ParseV4Local will parse and decrypt a v4 local paseto and validate against
 // any parser rules. Error if parsing, decryption, or any rule fails.
 func (p Parser) ParseV4Local(key V4SymmetricKey, tainted string, implicit []byte) (*Token, error) {

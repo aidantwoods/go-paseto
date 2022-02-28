@@ -107,6 +107,39 @@ func deconstructToken(token string) (header string, encodedPayload string, encod
 	return header, encodedPayload, encodedFooter, nil
 }
 
+// V2Verify will verify a v4 public paseto message. Will return a pointer to
+// the verified token (but not validated with rules) if successful, or error in
+// the event of failure.
+func (m Message) V2Verify(key V2AsymmetricPublicKey) (*Token, error) {
+	if packet, err := v2PublicVerify(m, key); err == nil {
+		return packet.token()
+	} else {
+		return nil, err
+	}
+}
+
+// V2Decrypt will verify a v4 public paseto message. Will return a pointer to
+// the decrypted token (but not validated with rules) if successful, or error in
+// the event of failure.
+func (m Message) V2Decrypt(key V2SymmetricKey) (*Token, error) {
+	if packet, err := v2LocalDecrypt(m, key); err == nil {
+		return packet.token()
+	} else {
+		return nil, err
+	}
+}
+
+// V3Decrypt will verify a v4 public paseto message. Will return a pointer to
+// the decrypted token (but not validated with rules) if successful, or error in
+// the event of failure.
+func (m Message) V3Decrypt(key V3SymmetricKey, implicit []byte) (*Token, error) {
+	if packet, err := v3LocalDecrypt(m, key, implicit); err == nil {
+		return packet.token()
+	} else {
+		return nil, err
+	}
+}
+
 // V4Verify will verify a v4 public paseto message. Will return a pointer to
 // the verified token (but not validated with rules) if successful, or error in
 // the event of failure.

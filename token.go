@@ -145,6 +145,59 @@ func (t *Token) SetFooter(footer []byte) {
 	t.footer = footer
 }
 
+// V2Sign signs the token, using the given key.
+func (t Token) V2Sign(key V2AsymmetricSecretKey) (*string, error) {
+
+	var encodedClaims []byte
+	var err error
+
+	if encodedClaims, err = t.ClaimsJSON(); err != nil {
+		return nil, err
+	}
+
+	p := packet{encodedClaims, []byte(t.footer)}
+
+	paseto := v2PublicSign(p, key).Encoded()
+
+	return &paseto, nil
+}
+
+// V2Encrypt signs the token, using the given key.
+func (t Token) V2Encrypt(key V2SymmetricKey) (*string, error) {
+	var encodedClaims []byte
+	var err error
+
+	if encodedClaims, err = t.ClaimsJSON(); err != nil {
+		return nil, err
+	}
+
+	p := packet{encodedClaims, []byte(t.footer)}
+
+	paseto := v2LocalEncrypt(p, key, nil).Encoded()
+
+	return &paseto, nil
+}
+
+// V3Encrypt signs the token, using the given key and implicit bytes. Implicit
+// bytes are bytes used to calculate the encrypted token, but which are not
+// present in the final token (or its decrypted value).
+// Implicit must be reprovided for successful decryption, and can not be
+// recovered.
+func (t Token) V3Encrypt(key V3SymmetricKey, implicit []byte) (*string, error) {
+	var encodedClaims []byte
+	var err error
+
+	if encodedClaims, err = t.ClaimsJSON(); err != nil {
+		return nil, err
+	}
+
+	p := packet{encodedClaims, []byte(t.footer)}
+
+	paseto := v3LocalEncrypt(p, key, implicit, nil).Encoded()
+
+	return &paseto, nil
+}
+
 // V4Sign signs the token, using the given key and implicit bytes. Implicit
 // bytes are bytes used to calculate the signature, but which are not present in
 // the final token.
