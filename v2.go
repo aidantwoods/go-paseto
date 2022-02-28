@@ -2,11 +2,10 @@ package paseto
 
 import (
 	"crypto/ed25519"
-	"crypto/rand"
-	"io"
 
 	"github.com/aidantwoods/go-paseto/internal/encoding"
 	"github.com/aidantwoods/go-paseto/internal/hashing"
+	"github.com/aidantwoods/go-paseto/internal/random"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/chacha20poly1305"
 )
@@ -49,20 +48,7 @@ func v2PublicVerify(message Message, key V2AsymmetricPublicKey) (packet, error) 
 
 func v2LocalEncrypt(p packet, key V2SymmetricKey, unitTestNonce []byte) Message {
 	var b [24]byte
-
-	if unitTestNonce != nil {
-		if len(unitTestNonce) != 24 {
-			panic("Unit test nonce incorrect length")
-		}
-
-		copy(b[:], unitTestNonce)
-	} else {
-		_, err := io.ReadFull(rand.Reader, b[:])
-
-		if err != nil {
-			panic("CSPRNG failure")
-		}
-	}
+	random.UseProvidedOrFillBytes(unitTestNonce, b[:])
 
 	var nonce [24]byte
 	hashing.GenericHash(p.content, nonce[:], b[:])

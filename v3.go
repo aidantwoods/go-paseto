@@ -4,30 +4,16 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hmac"
-	"crypto/rand"
 	"crypto/sha512"
-	"io"
 
 	"github.com/aidantwoods/go-paseto/internal/encoding"
+	"github.com/aidantwoods/go-paseto/internal/random"
 	"github.com/pkg/errors"
 )
 
 func v3LocalEncrypt(p packet, key V3SymmetricKey, implicit []byte, unitTestNonce []byte) Message {
 	var nonce [32]byte
-
-	if unitTestNonce != nil {
-		if len(unitTestNonce) != 32 {
-			panic("Unit test nonce incorrect length")
-		}
-
-		copy(nonce[:], unitTestNonce)
-	} else {
-		_, err := io.ReadFull(rand.Reader, nonce[:])
-
-		if err != nil {
-			panic("CSPRNG failure")
-		}
-	}
+	random.UseProvidedOrFillBytes(unitTestNonce, nonce[:])
 
 	encKey, authKey, nonce2 := key.split(nonce)
 

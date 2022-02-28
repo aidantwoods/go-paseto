@@ -3,11 +3,10 @@ package paseto
 import (
 	"crypto/ed25519"
 	"crypto/hmac"
-	"crypto/rand"
-	"io"
 
 	"github.com/aidantwoods/go-paseto/internal/encoding"
 	"github.com/aidantwoods/go-paseto/internal/hashing"
+	"github.com/aidantwoods/go-paseto/internal/random"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/chacha20"
 )
@@ -50,20 +49,7 @@ func v4PublicVerify(message Message, key V4AsymmetricPublicKey, implicit []byte)
 
 func v4LocalEncrypt(p packet, key V4SymmetricKey, implicit []byte, unitTestNonce []byte) Message {
 	var nonce [32]byte
-
-	if unitTestNonce != nil {
-		if len(unitTestNonce) != 32 {
-			panic("Unit test nonce incorrect length")
-		}
-
-		copy(nonce[:], unitTestNonce)
-	} else {
-		_, err := io.ReadFull(rand.Reader, nonce[:])
-
-		if err != nil {
-			panic("CSPRNG failure")
-		}
-	}
+	random.UseProvidedOrFillBytes(unitTestNonce, nonce[:])
 
 	encKey, authKey, nonce2 := key.split(nonce)
 
