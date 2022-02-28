@@ -2,18 +2,17 @@ package paseto
 
 import "errors"
 
-type Payload interface {
-	Bytes() []byte
+type payload interface {
+	bytes() []byte
 }
 
-func ProtocolForPayload(payload Payload) (Protocol, error) {
+func protocolForPayload(payload payload) (*Protocol, error) {
 	switch payload.(type) {
 	default:
-		var p Protocol
-		return p, errors.New("Unsupported Payload")
-	case V4LocalPayload:
-		return V4Local, nil
-	case V4PublicPayload:
-		return V4Public, nil
+		return nil, errors.New("Unsupported Payload")
+	case v4LocalPayload:
+		return &V4Local, nil
+	case v4PublicPayload:
+		return &V4Public, nil
 	}
 }

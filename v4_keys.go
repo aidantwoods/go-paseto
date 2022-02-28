@@ -15,6 +15,7 @@ type V4AsymmetricPublicKey struct {
 	material ed25519.PublicKey
 }
 
+// NewV4AsymmetricPublicKeyFromHex Construct a v4 public key from hex
 func NewV4AsymmetricPublicKeyFromHex(hexEncoded string) (V4AsymmetricPublicKey, error) {
 	publicKey, err := hex.DecodeString(hexEncoded)
 
@@ -33,6 +34,7 @@ func NewV4AsymmetricPublicKeyFromHex(hexEncoded string) (V4AsymmetricPublicKey, 
 	return V4AsymmetricPublicKey{publicKey}, nil
 }
 
+// ExportHex export a V4AsymmetricPublicKey to hex for storage
 func (k V4AsymmetricPublicKey) ExportHex() string {
 	return hex.EncodeToString(k.material)
 }
@@ -42,6 +44,7 @@ type V4AsymmetricSecretKey struct {
 	material ed25519.PrivateKey
 }
 
+// Public returns the corresponding public key for a secret key
 func (k V4AsymmetricSecretKey) Public() V4AsymmetricPublicKey {
 	material, ok := k.material.Public().(ed25519.PublicKey)
 
@@ -52,14 +55,19 @@ func (k V4AsymmetricSecretKey) Public() V4AsymmetricPublicKey {
 	return V4AsymmetricPublicKey{material}
 }
 
+// ExportHex export a V4AsymmetricSecretKey to hex for storage
 func (k V4AsymmetricSecretKey) ExportHex() string {
 	return hex.EncodeToString(k.material)
 }
 
+// ExportSeedHex export a V4AsymmetricSecretKey's seed to hex for storage
 func (k V4AsymmetricSecretKey) ExportSeedHex() string {
 	return hex.EncodeToString(k.material.Seed())
 }
 
+// NewV4AsymmetricSecretKey generate a new secret key for use with asymmetric
+// cryptography. Don't forget to export the public key for sharing, DO NOT share
+// this secret key.
 func NewV4AsymmetricSecretKey() V4AsymmetricSecretKey {
 	_, privateKey, err := ed25519.GenerateKey(nil)
 
@@ -70,6 +78,7 @@ func NewV4AsymmetricSecretKey() V4AsymmetricSecretKey {
 	return V4AsymmetricSecretKey{privateKey}
 }
 
+// NewV4AsymmetricSecretKeyFromHex creates a secret key from hex
 func NewV4AsymmetricSecretKeyFromHex(hexEncoded string) (V4AsymmetricSecretKey, error) {
 	privateKey, err := hex.DecodeString(hexEncoded)
 
@@ -88,6 +97,7 @@ func NewV4AsymmetricSecretKeyFromHex(hexEncoded string) (V4AsymmetricSecretKey, 
 	return V4AsymmetricSecretKey{privateKey}, nil
 }
 
+// NewV4AsymmetricSecretKeyFromSeed creates a secret key from a seed (hex)
 func NewV4AsymmetricSecretKeyFromSeed(hexEncoded string) (V4AsymmetricSecretKey, error) {
 	seedBytes, err := hex.DecodeString(hexEncoded)
 
@@ -111,6 +121,7 @@ type V4SymmetricKey struct {
 	material [32]byte
 }
 
+// NewV4SymmetricKey generates a new symmetric key for encryption
 func NewV4SymmetricKey() V4SymmetricKey {
 	var material [32]byte
 
@@ -123,10 +134,12 @@ func NewV4SymmetricKey() V4SymmetricKey {
 	return V4SymmetricKey{material}
 }
 
+// ExportHex exports the key as hex for storage
 func (k V4SymmetricKey) ExportHex() string {
 	return hex.EncodeToString(k.material[:])
 }
 
+// V4SymmetricKeyFromHex constructs a key from hex
 func V4SymmetricKeyFromHex(hexEncoded string) (V4SymmetricKey, error) {
 	bytes, err := hex.DecodeString(hexEncoded)
 
@@ -149,14 +162,22 @@ func V4SymmetricKeyFromHex(hexEncoded string) (V4SymmetricKey, error) {
 	return V4SymmetricKey{material}, nil
 }
 
-func (key V4SymmetricKey) split(nonce [32]byte) (encKey [32]byte, authkey [32]byte, nonce2 [24]byte) {
+func (k V4SymmetricKey) split(nonce [32]byte) (encKey [32]byte, authkey [32]byte, nonce2 [24]byte) {
 	var tmp [56]byte
-	hashing.GenericHash(append([]byte("paseto-encryption-key"), nonce[:]...), tmp[:], key.material[:])
+	hashing.GenericHash(
+		append([]byte("paseto-encryption-key"), nonce[:]...),
+		tmp[:],
+		k.material[:],
+	)
 
 	copy(encKey[:], tmp[0:32])
 	copy(nonce2[:], tmp[32:56])
 
-	hashing.GenericHash(append([]byte("paseto-auth-key-for-aead"), nonce[:]...), authkey[:], key.material[:])
+	hashing.GenericHash(
+		append([]byte("paseto-auth-key-for-aead"), nonce[:]...),
+		authkey[:],
+		k.material[:],
+	)
 
 	return encKey, authkey, nonce2
 }

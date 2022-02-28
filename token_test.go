@@ -13,9 +13,8 @@ func TestSomeString(t *testing.T) {
 	require.NoError(t, err)
 
 	var output string
-	err, exists := token.Get("foo", &output)
+	err = token.Get("foo", &output)
 	require.NoError(t, err)
-	require.True(t, exists)
 
 	require.Equal(t, "bar", output)
 }
@@ -35,9 +34,8 @@ func TestSomeStruct(t *testing.T) {
 	require.NoError(t, err)
 
 	var output SomeStruct
-	err, exists := token.Get("baz", &output)
+	err = token.Get("baz", &output)
 	require.NoError(t, err)
-	require.True(t, exists)
 
 	require.Equal(t, someStruct, output)
 }
@@ -57,9 +55,8 @@ func TestSomeWrongType(t *testing.T) {
 	require.NoError(t, err)
 
 	var output bool
-	err, exists := token.Get("baz", &output)
+	err = token.Get("baz", &output)
 	require.Error(t, err)
-	require.True(t, exists)
 }
 
 func TestSomeWrongKey(t *testing.T) {
@@ -69,9 +66,8 @@ func TestSomeWrongKey(t *testing.T) {
 	require.NoError(t, err)
 
 	var output string
-	err, exists := token.Get("bar", &output)
+	err = token.Get("bar", &output)
 	require.Error(t, err)
-	require.False(t, exists)
 }
 
 func TestFromMap(t *testing.T) {
@@ -93,16 +89,14 @@ func TestFromMap(t *testing.T) {
 	require.NoError(t, err)
 
 	var outputStr string
-	err, exists := token.Get("foo", &outputStr)
+	err = token.Get("foo", &outputStr)
 	require.NoError(t, err)
-	require.True(t, exists)
 
 	require.Equal(t, "bar", outputStr)
 
 	var outputStruct SomeStruct
-	err, exists = token.Get("baz", &outputStruct)
+	err = token.Get("baz", &outputStruct)
 	require.NoError(t, err)
-	require.True(t, exists)
 
 	require.Equal(t, someStruct, outputStruct)
 }
@@ -125,7 +119,7 @@ func TestJsonEncode(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	data, err := token.ClaimsJson()
+	data, err := token.ClaimsJSON()
 	require.NoError(t, err)
 
 	expected := `{"foo":"bar","baz":{"Field1":"boo","Field2":3,"Field3":true}}`
@@ -136,7 +130,7 @@ func TestJsonEncode(t *testing.T) {
 func TestJsonParse(t *testing.T) {
 	data := `{"foo":"bar","baz":{"Field1":"boo","Field2":3,"Field3":true}}`
 
-	token, err := NewTokenFromClaimsJson([]byte(data), nil)
+	token, err := NewTokenFromClaimsJSON([]byte(data), nil)
 	require.NoError(t, err)
 
 	type SomeStruct struct {
@@ -146,22 +140,20 @@ func TestJsonParse(t *testing.T) {
 	}
 
 	var outputStr string
-	err, exists := token.Get("foo", &outputStr)
+	err = token.Get("foo", &outputStr)
 	require.NoError(t, err)
-	require.True(t, exists)
 
 	expectedStr := "bar"
 	require.Equal(t, expectedStr, outputStr)
 
 	var outputStruct SomeStruct
-	err, exists = token.Get("baz", &outputStruct)
+	err = token.Get("baz", &outputStruct)
 	require.NoError(t, err)
-	require.True(t, exists)
 
 	expectedStruct := SomeStruct{"boo", 3, true}
 	require.Equal(t, expectedStruct, outputStruct)
 
-	encodedData, err := token.ClaimsJson()
+	encodedData, err := token.ClaimsJSON()
 	require.NoError(t, err)
 
 	require.JSONEq(t, data, string(encodedData))

@@ -1,14 +1,14 @@
 package paseto
 
-type Packet struct {
-	Content []byte
-	Footer  []byte
+type packet struct {
+	content []byte
+	footer  []byte
 }
 
-func newPacket(content []byte, footer []byte) Packet {
-	return Packet{content, footer}
+func newPacket(content []byte, footer []byte) packet {
+	return packet{content, footer}
 }
 
-func (p Packet) token() (*Token, error) {
-	return NewTokenFromClaimsJson(p.Content, p.Footer)
+func (p packet) token() (*Token, error) {
+	return NewTokenFromClaimsJSON(p.content, p.footer)
 }

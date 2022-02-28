@@ -6,8 +6,13 @@ import (
 	"time"
 )
 
+// Rule validates a given token for certain required preconditions (defined by
+// the rule itself). If validation fails a Rule MUST return an error, otherwise
+// error MUST be nil.
 type Rule func(token Token) error
 
+// ForAudience requires that the given audience matches the "aud" field of the
+// token.
 func ForAudience(audience string) Rule {
 	return func(token Token) error {
 		var tAud *string
@@ -24,10 +29,15 @@ func ForAudience(audience string) Rule {
 			return nil
 		}
 
-		return errors.New("this token is not intended for `" + audience + "`. `" + *tAud + "` found")
+		return errors.New(
+			"this token is not intended for `" +
+				audience + "`. `" + *tAud + "` found",
+		)
 	}
 }
 
+// IdentifiedBy requires that the given identifier matches the "jti" field of
+// the token.
 func IdentifiedBy(identifier string) Rule {
 	return func(token Token) error {
 		var tJti *string
@@ -41,13 +51,17 @@ func IdentifiedBy(identifier string) Rule {
 		jtiBytes := []byte(identifier)
 
 		if subtle.ConstantTimeCompare(tJtiBytes, jtiBytes) == 0 {
-			return errors.New("this token is not identified by `" + identifier + "`. `" + *tJti + "` found")
+			return errors.New(
+				"this token is not identified by `" +
+					identifier + "`. `" + *tJti + "` found",
+			)
 		}
 
 		return nil
 	}
 }
 
+// IssuedBy requires that the given issuer matches the "iss" field of the token.
 func IssuedBy(issuer string) Rule {
 	return func(token Token) error {
 		var tIss *string
@@ -61,13 +75,20 @@ func IssuedBy(issuer string) Rule {
 		issBytes := []byte(issuer)
 
 		if subtle.ConstantTimeCompare(tIssBytes, issBytes) == 0 {
-			return errors.New("this token is not issued by `" + issuer + "`. `" + *tIss + "` found")
+			return errors.New(
+				"this token is not issued by `" +
+					issuer + "`. `" + *tIss + "` found",
+			)
 		}
 
 		return nil
 	}
 }
 
+// NotExpired requires that the token has not expired according to the time
+// when this rule is created and the "exp" field of a token. Beware that this
+// rule does not validate the token's "iat" or "nbf" fields, or even require
+// their presence.
 func NotExpired() Rule {
 	return func(token Token) error {
 		var exp *time.Time
@@ -87,6 +108,7 @@ func NotExpired() Rule {
 	}
 }
 
+// Subject requires that the given subject matches the "sub" field of the token.
 func Subject(subject string) Rule {
 	return func(token Token) error {
 		var tSub *string
@@ -107,6 +129,9 @@ func Subject(subject string) Rule {
 	}
 }
 
+// ValidAt requires that the token has not expired according to the given time
+// and the "exp" field, and that the given time is both after the token's issued
+// at time "iat", and the token's not before time "nbf".
 func ValidAt(t time.Time) Rule {
 	return func(token Token) error {
 		var err error
@@ -139,14 +164,18 @@ func ValidAt(t time.Time) Rule {
 	}
 }
 
+// GetAudience returns the token's "aud" field, or error if not found or not a
+// string.
 func (t Token) GetAudience() (*string, error) {
 	return t.GetString("aud")
 }
 
+// GetExpiration returns the token's "exp" field, or error if not found or not a
+// a RFC3339 compliant time.
 func (t Token) GetExpiration() (*time.Time, error) {
 	var expStr string
 
-	if err, _ := t.Get("exp", &expStr); err != nil {
+	if err := t.Get("exp", &expStr); err != nil {
 		return nil, err
 	}
 
@@ -155,10 +184,12 @@ func (t Token) GetExpiration() (*time.Time, error) {
 	return &exp, err
 }
 
+// GetIssuedAt returns the token's "iat" field, or error if not found or not a
+// a RFC3339 compliant time.
 func (t Token) GetIssuedAt() (*time.Time, error) {
 	var iatStr string
 
-	if err, _ := t.Get("iat", &iatStr); err != nil {
+	if err := t.Get("iat", &iatStr); err != nil {
 		return nil, err
 	}
 
@@ -167,18 +198,24 @@ func (t Token) GetIssuedAt() (*time.Time, error) {
 	return &iat, err
 }
 
+// GetIssuer returns the token's "iss" field, or error if not found or not a
+// string.
 func (t Token) GetIssuer() (*string, error) {
 	return t.GetString("iss")
 }
 
+// GetJti returns the token's "jti" field, or error if not found or not a
+// string.
 func (t Token) GetJti() (*string, error) {
 	return t.GetString("jti")
 }
 
+// GetNotBefore returns the token's "nbf" field, or error if not found or not a
+// a RFC3339 compliant time.
 func (t Token) GetNotBefore() (*time.Time, error) {
 	var nbfStr *string
 
-	if err, _ := t.Get("nbf", &nbfStr); err != nil {
+	if err := t.Get("nbf", &nbfStr); err != nil {
 		return nil, err
 	}
 
@@ -187,34 +224,43 @@ func (t Token) GetNotBefore() (*time.Time, error) {
 	return &nbf, err
 }
 
+// GetSubject returns the token's "sub" field, or error if not found or not a
+// string.
 func (t Token) GetSubject() (*string, error) {
 	return t.GetString("sub")
 }
 
+// SetAudience sets the token's "aud" field.
 func (t *Token) SetAudience(audience string) {
 	t.SetString("aud", audience)
 }
 
+// SetExpiration sets the token's "exp" field.
 func (t *Token) SetExpiration(exp time.Time) {
 	t.SetString("exp", exp.Format(time.RFC3339))
 }
 
+// SetIssuedAt sets the token's "iat" field.
 func (t *Token) SetIssuedAt(iat time.Time) {
 	t.SetString("iat", iat.Format(time.RFC3339))
 }
 
+// SetIssuer sets the token's "iss" field.
 func (t *Token) SetIssuer(issuer string) {
 	t.SetString("iss", issuer)
 }
 
+// SetJti sets the token's "jti" field.
 func (t *Token) SetJti(identifier string) {
 	t.SetString("jti", identifier)
 }
 
+// SetNotBefore sets the token's "nbf" field.
 func (t *Token) SetNotBefore(nbf time.Time) {
 	t.SetString("nbf", nbf.Format(time.RFC3339))
 }
 
+// SetSubject sets the token's "sub" field.
 func (t *Token) SetSubject(subject string) {
 	t.SetString("sub", subject)
 }

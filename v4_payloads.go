@@ -4,21 +4,21 @@ import (
 	"github.com/pkg/errors"
 )
 
-// V4PublicPayload v4 local payload
-type V4PublicPayload struct {
+// v4PublicPayload v4 local payload
+type v4PublicPayload struct {
 	message   []byte
 	signature [64]byte
 }
 
-func (p V4PublicPayload) Bytes() []byte {
+func (p v4PublicPayload) bytes() []byte {
 	return append(p.message, p.signature[:]...)
 }
 
-func NewV4PublicPayload(bytes []byte) (V4PublicPayload, error) {
+func newV4PublicPayload(bytes []byte) (v4PublicPayload, error) {
 	signatureOffset := len(bytes) - 64
 
 	if signatureOffset < 0 {
-		var p V4PublicPayload
+		var p v4PublicPayload
 		return p, errors.New("Payload is not long enough to by a valid Paseto message")
 	}
 
@@ -28,23 +28,23 @@ func NewV4PublicPayload(bytes []byte) (V4PublicPayload, error) {
 	copy(message, bytes[:signatureOffset])
 	copy(signature[:], bytes[signatureOffset:])
 
-	return V4PublicPayload{message, signature}, nil
+	return v4PublicPayload{message, signature}, nil
 }
 
-// V4LocalPayload v4 local payload
-type V4LocalPayload struct {
+// v4LocalPayload v4 local payload
+type v4LocalPayload struct {
 	nonce      [32]byte
 	cipherText []byte
 	tag        [32]byte
 }
 
-func (p V4LocalPayload) Bytes() []byte {
+func (p v4LocalPayload) bytes() []byte {
 	return append(append(p.nonce[:], p.cipherText...), p.tag[:]...)
 }
 
-func NewV4LocalPayload(bytes []byte) (V4LocalPayload, error) {
+func newV4LocalPayload(bytes []byte) (v4LocalPayload, error) {
 	if len(bytes) <= 32+32 {
-		var p V4LocalPayload
+		var p v4LocalPayload
 		return p, errors.New("Payload is not long enough to by a valid Paseto message")
 	}
 
@@ -58,5 +58,5 @@ func NewV4LocalPayload(bytes []byte) (V4LocalPayload, error) {
 	copy(cipherText, bytes[32:macOffset])
 	copy(tag[:], bytes[macOffset:])
 
-	return V4LocalPayload{nonce, cipherText, tag}, nil
+	return v4LocalPayload{nonce, cipherText, tag}, nil
 }

@@ -12,8 +12,8 @@ import (
 	"golang.org/x/crypto/chacha20"
 )
 
-func V4PublicSign(packet Packet, key V4AsymmetricSecretKey, implicit []byte) Message {
-	data, footer := packet.Content, packet.Footer
+func v4PublicSign(packet packet, key V4AsymmetricSecretKey, implicit []byte) Message {
+	data, footer := packet.content, packet.footer
 	header := []byte(V4Public.Header())
 
 	m2 := encoding.Pae(header, data, footer, implicit)
@@ -27,15 +27,15 @@ func V4PublicSign(packet Packet, key V4AsymmetricSecretKey, implicit []byte) Mes
 	var signature [64]byte
 	copy(signature[:], sig)
 
-	return newMessageFromPayload(V4PublicPayload{data, signature}, footer)
+	return newMessageFromPayload(v4PublicPayload{data, signature}, footer)
 }
 
-func V4PublicVerify(message Message, key V4AsymmetricPublicKey, implicit []byte) (Packet, error) {
-	var payload V4PublicPayload
+func v4PublicVerify(message Message, key V4AsymmetricPublicKey, implicit []byte) (packet, error) {
+	var payload v4PublicPayload
 	var ok bool
 
-	if payload, ok = message.payload.(V4PublicPayload); message.Header() != V4Public.Header() || !ok {
-		var p Packet
+	if payload, ok = message.p.(v4PublicPayload); message.Header() != V4Public.Header() || !ok {
+		var p packet
 		return p, errors.Errorf("Cannot decrypt message with header: %s", message.Header())
 	}
 
@@ -45,18 +45,18 @@ func V4PublicVerify(message Message, key V4AsymmetricPublicKey, implicit []byte)
 	m2 := encoding.Pae(header, data, footer, implicit)
 
 	if !ed25519.Verify(key.material, m2, payload.signature[:]) {
-		var p Packet
+		var p packet
 		return p, errors.Errorf("Bad signature")
 	}
 
-	return Packet{data, footer}, nil
+	return packet{data, footer}, nil
 }
 
-func V4LocalEncrypt(p Packet, key V4SymmetricKey, implicit []byte) Message {
-	return v4LocalEncrypt(p, key, implicit, nil)
-}
+// func V4LocalEncrypt(p packet, key V4SymmetricKey, implicit []byte) Message {
+// 	return v4LocalEncrypt(p, key, implicit, nil)
+// }
 
-func v4LocalEncrypt(p Packet, key V4SymmetricKey, implicit []byte, unitTestNonce []byte) Message {
+func v4LocalEncrypt(p packet, key V4SymmetricKey, implicit []byte, unitTestNonce []byte) Message {
 	var nonce [32]byte
 
 	if unitTestNonce != nil {
@@ -81,25 +81,25 @@ func v4LocalEncrypt(p Packet, key V4SymmetricKey, implicit []byte, unitTestNonce
 		panic("Cannot construct cipher")
 	}
 
-	cipherText := make([]byte, len(p.Content))
-	cipher.XORKeyStream(cipherText, p.Content)
+	cipherText := make([]byte, len(p.content))
+	cipher.XORKeyStream(cipherText, p.content)
 
 	header := []byte(V4Local.Header())
 
-	preAuth := encoding.Pae(header, nonce[:], cipherText, p.Footer, implicit)
+	preAuth := encoding.Pae(header, nonce[:], cipherText, p.footer, implicit)
 
 	var tag [32]byte
 	hashing.GenericHash(preAuth, tag[:], authKey[:])
 
-	return newMessageFromPayload(V4LocalPayload{nonce, cipherText, tag}, p.Footer)
+	return newMessageFromPayload(v4LocalPayload{nonce, cipherText, tag}, p.footer)
 }
 
-func V4LocalDecrypt(message Message, key V4SymmetricKey, implicit []byte) (Packet, error) {
-	var payload V4LocalPayload
+func v4LocalDecrypt(message Message, key V4SymmetricKey, implicit []byte) (packet, error) {
+	var payload v4LocalPayload
 	var ok bool
 
-	if payload, ok = message.payload.(V4LocalPayload); message.Header() != V4Local.Header() || !ok {
-		var p Packet
+	if payload, ok = message.p.(v4LocalPayload); message.Header() != V4Local.Header() || !ok {
+		var p packet
 		return p, errors.Errorf("Cannot decrypt message with header: %s", message.Header())
 	}
 
@@ -120,12 +120,12 @@ func V4LocalDecrypt(message Message, key V4SymmetricKey, implicit []byte) (Packe
 	hashing.GenericHash(preAuth, expectedTag[:], authKey[:])
 
 	if !hmac.Equal(expectedTag[:], givenTag[:]) {
-		var p Packet
+		var p packet
 		return p, errors.Errorf("Bad message authentication code")
 	}
 
 	plainText := make([]byte, len(cipherText))
 	cipher.XORKeyStream(plainText, cipherText)
 
-	return Packet{plainText, message.footer}, nil
+	return packet{plainText, message.footer}, nil
 }

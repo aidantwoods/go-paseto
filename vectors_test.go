@@ -37,7 +37,7 @@ func TestV4(t *testing.T) {
 
 	for _, test := range tests.Tests {
 		t.Run(test.Name, func(t *testing.T) {
-			var decoded Packet
+			var decoded packet
 
 			switch test.Key {
 			// Local mode
@@ -52,7 +52,7 @@ func TestV4(t *testing.T) {
 				}
 				require.NoError(t, err)
 
-				decoded, err = V4LocalDecrypt(message, sk, []byte(test.ImplicitAssertation))
+				decoded, err = v4LocalDecrypt(message, sk, []byte(test.ImplicitAssertation))
 				if test.ExpectFail {
 					require.Error(t, err)
 					return
@@ -71,7 +71,7 @@ func TestV4(t *testing.T) {
 				}
 				require.NoError(t, err)
 
-				decoded, err = V4PublicVerify(message, pk, []byte(test.ImplicitAssertation))
+				decoded, err = v4PublicVerify(message, pk, []byte(test.ImplicitAssertation))
 				if test.ExpectFail {
 					require.Error(t, err)
 					return
@@ -79,8 +79,8 @@ func TestV4(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			require.Equal(t, test.Payload, string(decoded.Content))
-			require.Equal(t, test.Footer, string(decoded.Footer))
+			require.Equal(t, test.Payload, string(decoded.content))
+			require.Equal(t, test.Footer, string(decoded.footer))
 
 			packet := newPacket([]byte(test.Payload), []byte(test.Footer))
 			implicit := []byte(test.ImplicitAssertation)
@@ -104,7 +104,7 @@ func TestV4(t *testing.T) {
 				sk, err := NewV4AsymmetricSecretKeyFromHex(test.SecretKey)
 				require.NoError(t, err)
 
-				signed := V4PublicSign(packet, sk, implicit)
+				signed := v4PublicSign(packet, sk, implicit)
 				require.NoError(t, err)
 
 				require.Equal(t, test.Token, signed.Encoded())
