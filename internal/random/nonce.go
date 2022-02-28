@@ -18,6 +18,10 @@ func FillBytes(out []byte) {
 // nil and matches the length of out exactly.
 // If unitTestNonce length is incorrect this will panic.
 // If provided is nil, out will be filled with CSPRNG bytes using FillBytes.
+//
+// This allows us to unit test where encryption would otherwise be
+// non-deterministic. Functions which accept unitTestNonce will not be exported
+// and so do not present a footgun in the user-available API.
 func UseProvidedOrFillBytes(unitTestNonce, out []byte) {
 	if unitTestNonce != nil {
 		if len(unitTestNonce) != len(out) {
