@@ -24,7 +24,7 @@ func TestSignSelfConsistent(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	parser := MakeParser(nil)
+	parser := NewParser()
 
 	key := NewV4AsymmetricSecretKey()
 
@@ -61,7 +61,7 @@ func TestEncryptSelfConsistent(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	parser := MakeParser(nil)
+	parser := NewParser()
 
 	key := NewV4SymmetricKey()
 
