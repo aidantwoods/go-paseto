@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"io"
 
-	"github.com/aidantwoods/go-paseto/internal/hashing"
 	"github.com/pkg/errors"
 )
 
@@ -160,25 +159,4 @@ func V2SymmetricKeyFromHex(hexEncoded string) (V2SymmetricKey, error) {
 	copy(material[:], bytes)
 
 	return V2SymmetricKey{material}, nil
-}
-
-func (k V2SymmetricKey) split(nonce [24]byte) (encKey [32]byte, authkey [32]byte, nonce2 [24]byte) {
-	var tmp [56]byte
-
-	hashing.GenericHash(
-		append([]byte("paseto-encryption-key"), nonce[:]...),
-		tmp[:],
-		k.material[:],
-	)
-
-	copy(encKey[:], tmp[0:32])
-	copy(nonce2[:], tmp[32:56])
-
-	hashing.GenericHash(
-		append([]byte("paseto-auth-key-for-aead"), nonce[:]...),
-		authkey[:],
-		k.material[:],
-	)
-
-	return encKey, authkey, nonce2
 }
