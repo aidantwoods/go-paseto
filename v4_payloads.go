@@ -4,7 +4,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// v4PublicPayload v4 local payload
 type v4PublicPayload struct {
 	message   []byte
 	signature [64]byte
@@ -31,7 +30,6 @@ func newV4PublicPayload(bytes []byte) (v4PublicPayload, error) {
 	return v4PublicPayload{message, signature}, nil
 }
 
-// v4LocalPayload v4 local payload
 type v4LocalPayload struct {
 	nonce      [32]byte
 	cipherText []byte
