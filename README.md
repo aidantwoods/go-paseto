@@ -98,9 +98,9 @@ parser := NewParser()
 parser.
 token, err := parser.ParseV4Public(publicKey, signed, nil) // this will fail if either rules fail, or
 
-// the following will succeed
 claimsJSON, _ := token.ClaimsJSON()
 
+// the following will succeed
 require.JSONEq(t,
     "{\"data\":\"this is a signed message\",\"exp\":\"2022-01-01T00:00:00+00:00\"}",
     string(claimsJson),
