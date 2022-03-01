@@ -5,6 +5,28 @@ import (
 	"fmt"
 )
 
+// Purpose represents either local or public paseto mode
+type Purpose string
+
+const (
+	// Local is a paseto mode which encrypts the token
+	Local Purpose = "local"
+	// Public is a paseto mode which signs the token
+	Public Purpose = "public"
+)
+
+// Version represents a valid paseto version
+type Version string
+
+const (
+	// Version2 corresponds to paseto v2 tokens
+	Version2 Version = "v2"
+	// Version3 corresponds to paseto v3 tokens
+	Version3 Version = "v3"
+	// Version4 corresponds to paseto v4 tokens
+	Version4 Version = "v4"
+)
+
 var (
 	// V2Local represents a v2 protocol in local mode
 	V2Local = Protocol{Version2, Local}
@@ -103,4 +125,38 @@ func (p Protocol) newPayload(bytes []byte) (payload, error) {
 			return newV4PublicPayload(bytes)
 		}
 	}
+}
+
+type payload interface {
+	bytes() []byte
+}
+
+func protocolForPayload(payload payload) (Protocol, error) {
+	switch payload.(type) {
+	default:
+		return Protocol{}, errors.New("Unsupported Payload")
+	case v2LocalPayload:
+		return V2Local, nil
+	case v2PublicPayload:
+		return V2Public, nil
+	case v3LocalPayload:
+		return V3Local, nil
+	case v4LocalPayload:
+		return V4Local, nil
+	case v4PublicPayload:
+		return V4Public, nil
+	}
+}
+
+type packet struct {
+	content []byte
+	footer  []byte
+}
+
+func newPacket(content []byte, footer []byte) packet {
+	return packet{content, footer}
+}
+
+func (p packet) token() (*Token, error) {
+	return NewTokenFromClaimsJSON(p.content, p.footer)
 }
