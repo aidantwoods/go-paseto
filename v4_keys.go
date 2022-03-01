@@ -2,11 +2,10 @@ package paseto
 
 import (
 	"crypto/ed25519"
-	"crypto/rand"
 	"encoding/hex"
-	"io"
 
 	"github.com/aidantwoods/go-paseto/internal/hashing"
+	"github.com/aidantwoods/go-paseto/internal/random"
 	"github.com/pkg/errors"
 )
 
@@ -124,12 +123,7 @@ type V4SymmetricKey struct {
 // NewV4SymmetricKey generates a new symmetric key for encryption
 func NewV4SymmetricKey() V4SymmetricKey {
 	var material [32]byte
-
-	_, err := io.ReadFull(rand.Reader, material[:])
-
-	if err != nil {
-		panic("CSPRNG failure")
-	}
+	random.FillBytes(material[:])
 
 	return V4SymmetricKey{material}
 }

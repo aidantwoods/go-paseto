@@ -1,11 +1,11 @@
 package paseto
 
 import (
-	"crypto/rand"
 	"crypto/sha512"
 	"encoding/hex"
 	"io"
 
+	"github.com/aidantwoods/go-paseto/internal/random"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/hkdf"
 )
@@ -18,11 +18,7 @@ type V3SymmetricKey struct {
 // NewV3SymmetricKey generates a new symmetric key for encryption
 func NewV3SymmetricKey() V3SymmetricKey {
 	var material [32]byte
-	_, err := io.ReadFull(rand.Reader, material[:])
-
-	if err != nil {
-		panic("CSPRNG failure")
-	}
+	random.FillBytes(material[:])
 
 	return V3SymmetricKey{material}
 }
