@@ -16,7 +16,7 @@ func (p v3LocalPayload) bytes() []byte {
 
 func newV3LocalPayload(bytes []byte) (v3LocalPayload, error) {
 	if len(bytes) <= 32+48 {
-		return v3LocalPayload{}, errors.New("Payload is not long enough to by a valid Paseto message")
+		return v3LocalPayload{}, errors.New("Payload is not long enough to be a valid Paseto message")
 	}
 
 	macOffset := len(bytes) - 48

@@ -16,7 +16,7 @@ func (p v2PublicPayload) bytes() []byte {
 func newV2PublicPayload(bytes []byte) (v2PublicPayload, error) {
 	signatureOffset := len(bytes) - 64
 	if signatureOffset < 0 {
-		return v2PublicPayload{}, errors.New("Payload is not long enough to by a valid Paseto message")
+		return v2PublicPayload{}, errors.New("Payload is not long enough to be a valid Paseto message")
 	}
 
 	message := make([]byte, len(bytes)-64)
@@ -39,7 +39,7 @@ func (p v2LocalPayload) bytes() []byte {
 
 func newV2LocalPayload(bytes []byte) (v2LocalPayload, error) {
 	if len(bytes) <= 24 {
-		return v2LocalPayload{}, errors.New("Payload is not long enough to by a valid Paseto message")
+		return v2LocalPayload{}, errors.New("Payload is not long enough to be a valid Paseto message")
 	}
 	var nonce [24]byte
 	copy(nonce[:], bytes[0:24])
