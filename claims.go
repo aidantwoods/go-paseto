@@ -20,14 +20,14 @@ func ForAudience(audience string) Rule {
 			return err
 		}
 
-		if subtle.ConstantTimeCompare([]byte(tAud), []byte(audience)) == 1 {
-			return nil
+		if subtle.ConstantTimeCompare([]byte(tAud), []byte(audience)) == 0 {
+			return errors.New(
+				"this token is not intended for `" +
+					audience + "`. `" + tAud + "` found",
+			)
 		}
 
-		return errors.New(
-			"this token is not intended for `" +
-				audience + "`. `" + tAud + "` found",
-		)
+		return nil
 	}
 }
 
@@ -100,11 +100,14 @@ func Subject(subject string) Rule {
 			return err
 		}
 
-		if subtle.ConstantTimeCompare([]byte(tSub), []byte(subject)) == 1 {
-			return nil
+		if subtle.ConstantTimeCompare([]byte(tSub), []byte(subject)) == 0 {
+			return errors.New(
+				"this token is not related to `" +
+					subject + "`. `" + tSub + "` found",
+			)
 		}
 
-		return errors.New("this token is not related to `" + subject + "`. `" + tSub + "` found")
+		return nil
 	}
 }
 
