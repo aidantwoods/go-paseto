@@ -2,6 +2,7 @@ package paseto
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -91,6 +92,23 @@ func (t *Token) SetString(key string, value string) {
 		// panic if we get an error, we shouldn't fail to encode a string value
 		panic(err)
 	}
+}
+
+// GetTime returns the time for a given key as a string, or error if this
+// is not possible (cannot parse as a time, or value does not exist)
+func (t Token) GetTime(key string) (time.Time, error) {
+	timeStr, err := t.GetString(key)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	return time.Parse(time.RFC3339, timeStr)
+}
+
+// SetTime sets the given key with the given time, encoded using RFC3339 (the
+// time format used by common PASETO claims).
+func (t *Token) SetTime(key string, value time.Time) {
+	t.SetString(key, value.Format(time.RFC3339))
 }
 
 // Claims gets the stored claims.

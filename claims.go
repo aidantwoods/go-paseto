@@ -153,23 +153,13 @@ func (t Token) GetAudience() (string, error) {
 // GetExpiration returns the token's "exp" field, or error if not found or not a
 // a RFC3339 compliant time.
 func (t Token) GetExpiration() (time.Time, error) {
-	expStr, err := t.GetString("exp")
-	if err != nil {
-		return time.Time{}, err
-	}
-
-	return time.Parse(time.RFC3339, expStr)
+	return t.GetTime("exp")
 }
 
 // GetIssuedAt returns the token's "iat" field, or error if not found or not a
 // a RFC3339 compliant time.
 func (t Token) GetIssuedAt() (time.Time, error) {
-	iatStr, err := t.GetString("iat")
-	if err != nil {
-		return time.Time{}, err
-	}
-
-	return time.Parse(time.RFC3339, iatStr)
+	return t.GetTime("iat")
 }
 
 // GetIssuer returns the token's "iss" field, or error if not found or not a
@@ -187,12 +177,7 @@ func (t Token) GetJti() (string, error) {
 // GetNotBefore returns the token's "nbf" field, or error if not found or not a
 // a RFC3339 compliant time.
 func (t Token) GetNotBefore() (time.Time, error) {
-	nbfStr, err := t.GetString("nbf")
-	if err != nil {
-		return time.Time{}, err
-	}
-
-	return time.Parse(time.RFC3339, nbfStr)
+	return t.GetTime("nbf")
 }
 
 // GetSubject returns the token's "sub" field, or error if not found or not a
@@ -208,12 +193,12 @@ func (t *Token) SetAudience(audience string) {
 
 // SetExpiration sets the token's "exp" field.
 func (t *Token) SetExpiration(exp time.Time) {
-	t.SetString("exp", exp.Format(time.RFC3339))
+	t.SetTime("exp", exp)
 }
 
 // SetIssuedAt sets the token's "iat" field.
 func (t *Token) SetIssuedAt(iat time.Time) {
-	t.SetString("iat", iat.Format(time.RFC3339))
+	t.SetTime("iat", iat)
 }
 
 // SetIssuer sets the token's "iss" field.
@@ -228,7 +213,7 @@ func (t *Token) SetJti(identifier string) {
 
 // SetNotBefore sets the token's "nbf" field.
 func (t *Token) SetNotBefore(nbf time.Time) {
-	t.SetString("nbf", nbf.Format(time.RFC3339))
+	t.SetTime("nbf", nbf)
 }
 
 // SetSubject sets the token's "sub" field.
