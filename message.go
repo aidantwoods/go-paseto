@@ -81,13 +81,12 @@ func deconstructToken(token string) (header string, encodedPayload string, encod
 	parts := strings.Split(token, ".")
 
 	partsLen := len(parts)
-
 	if partsLen != 3 && partsLen != 4 {
 		err = errors.New("Invalid number of message parts in token")
 		return
 	}
 
-	header = strings.Join([]string{parts[0], parts[1]}, ".") + "."
+	header = parts[0] + "." + parts[1] + "."
 	encodedPayload = parts[2]
 
 	if partsLen == 4 {
