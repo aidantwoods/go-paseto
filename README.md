@@ -92,9 +92,8 @@ Importing a public key, and then verifying a token:
 publicKey, err := paseto.NewV4AsymmetricPublicKeyFromHex("1eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2") // this wil fail if given key in an invalid format
 signed := "v4.public.eyJkYXRhIjoidGhpcyBpcyBhIHNpZ25lZCBtZXNzYWdlIiwiZXhwIjoiMjAyMi0wMS0wMVQwMDowMDowMCswMDowMCJ9v3Jt8mx_TdM2ceTGoqwrh4yDFn0XsHvvV_D0DtwQxVrJEBMl0F2caAdgnpKlt4p7xBnx1HcO-SPo8FPp214HDw.eyJraWQiOiJ6VmhNaVBCUDlmUmYyc25FY1Q3Z0ZUaW9lQTlDT2NOeTlEZmdMMVc2MGhhTiJ9"
 
-parser := paseto.NewParserWithoutExpiryCheck() // only used because this example token has expired, use NewParser() to check expiry
-parser.
-token, err := parser.ParseV4Public(publicKey, signed, nil) // this will fail if either rules fail, or
+parser := paseto.NewParserWithoutExpiryCheck() // only used because this example token has expired, use NewParser() (which checks expiry by default)
+token, err := parser.ParseV4Public(publicKey, signed, nil) // this will fail if parsing failes, cryptographic checks fail, or validation rules fail
 
 // the following will succeed
 require.JSONEq(t,
@@ -105,6 +104,7 @@ require.Equal(t,
     "{\"kid\":\"zVhMiPBP9fRf2snEcT7gFTioeA9COcNy9DfgL1W60haN\"}",
     string(token.Footer()),
 )
+require.NoError(t, err)
 ```
 
 # Supported Paseto Versions
