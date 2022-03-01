@@ -43,7 +43,7 @@ go get -u github.com/aidantwoods/go-paseto
 
 Okay, let's create a token:
 ```go
-token := NewToken()
+token := paseto.NewToken()
 
 token.SetIssuedAt(time.Now())
 token.SetNotBefore(time.Now().Add(2 * time.Minute))
@@ -54,7 +54,7 @@ token.SetString("user-id", "<uuid>")
 
 Now encrypt it:
 ```go
-key := NewV4SymmetricKey() // don't share this!!
+key := paseto.NewV4SymmetricKey() // don't share this!!
 
 encrypted, err := token.V4Encrypt(key, nil)
 if err != nil {
@@ -65,7 +65,7 @@ if err != nil {
 Or sign it (this allows recievers to verify it without sharing secrets):
 ```go
 
-secretKey := NewV4AsymmetricSecretKey() // don't share this!!!
+secretKey := paseto.NewV4AsymmetricSecretKey() // don't share this!!!
 publicKey := secretKey.Public() // DO share this one
 
 signed, err := token.V4Sign(secretKey, nil)
