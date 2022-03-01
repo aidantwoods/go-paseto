@@ -57,8 +57,8 @@ func (t *Token) Set(key string, value interface{}) error {
 	return nil
 }
 
-// Get gets the given key and writes the value into output, if present by
-// parsing the JSON using encoding/json.
+// Get gets the given key and writes the value into output (which should be a
+// a pointer), if present by parsing the JSON using encoding/json.
 func (t Token) Get(key string, output interface{}) (err error) {
 	v, ok := t.claims[key]
 	if !ok {
@@ -87,8 +87,8 @@ func (t Token) GetString(key string) (string, error) {
 // SetString sets the given key with value. If, for some reason, the provided
 // string cannot be serialised as JSON SetString will panic.
 func (t *Token) SetString(key string, value string) {
-	// panic if we get an error, we shouldn't fail to set a string value
 	if err := t.Set(key, value); err != nil {
+		// panic if we get an error, we shouldn't fail to encode a string value
 		panic(err)
 	}
 }
