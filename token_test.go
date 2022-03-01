@@ -19,6 +19,40 @@ func TestSomeString(t *testing.T) {
 	require.Equal(t, "bar", output)
 }
 
+func TestSomeInt(t *testing.T) {
+	token := NewToken()
+
+	err := token.Set("foo", 3)
+	require.NoError(t, err)
+
+	var output string
+	err = token.Get("foo", &output)
+	require.Error(t, err)
+
+	var intOutput int
+	err = token.Get("foo", &intOutput)
+	require.NoError(t, err)
+
+	require.Equal(t, 3, intOutput)
+}
+
+func TestSomeBool(t *testing.T) {
+	token := NewToken()
+
+	err := token.Set("foo", true)
+	require.NoError(t, err)
+
+	var intOutput int
+	err = token.Get("foo", &intOutput)
+	require.Error(t, err)
+
+	var output bool
+	err = token.Get("foo", &output)
+	require.NoError(t, err)
+
+	require.Equal(t, true, output)
+}
+
 func TestSomeStruct(t *testing.T) {
 	type SomeStruct struct {
 		Field1 string
