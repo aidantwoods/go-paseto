@@ -109,7 +109,7 @@ func TestFutureIat(t *testing.T) {
 	// simulated check will be 30 seconds from now
 	token.SetExpiration(time.Now().Add(time.Minute))
 	token.SetNotBefore(time.Now().Add(25 * time.Second))
-	token.SetIssuedAt(time.Now().Add(35 * time.Minute))
+	token.SetIssuedAt(time.Now().Add(35 * time.Second))
 
 	key := NewV4SymmetricKey()
 
