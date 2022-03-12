@@ -6,8 +6,8 @@ import (
 	"crypto/hmac"
 	"crypto/sha512"
 
-	"github.com/aidantwoods/go-paseto/internal/encoding"
-	"github.com/aidantwoods/go-paseto/internal/random"
+	"aidanwoods.dev/go-paseto/internal/encoding"
+	"aidanwoods.dev/go-paseto/internal/random"
 	"github.com/pkg/errors"
 )
 

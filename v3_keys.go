@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"io"
 
-	"github.com/aidantwoods/go-paseto/internal/random"
+	"aidanwoods.dev/go-paseto/internal/random"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/hkdf"
 )

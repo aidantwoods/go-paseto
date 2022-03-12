@@ -1,4 +1,4 @@
-module github.com/aidantwoods/go-paseto
+module aidanwoods.dev/go-paseto
 
 go 1.17
 

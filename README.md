@@ -36,7 +36,7 @@ unlikely that you'll be able to use Paseto in
 # Installation
 
 ```bash
-go get -u github.com/aidantwoods/go-paseto
+go get -u aidanwoods.dev/go-paseto
 ```
 
 # Overview of the Go library
