@@ -46,7 +46,7 @@ Okay, let's create a token:
 token := paseto.NewToken()
 
 token.SetIssuedAt(time.Now())
-token.SetNotBefore(time.Now().Add(2 * time.Minute))
+token.SetNotBefore(time.Now())
 token.SetExpiration(time.Now().Add(2 * time.Hour))
 
 token.SetString("user-id", "<uuid>")
@@ -107,10 +107,66 @@ require.Equal(t,
 require.NoError(t, err)
 ```
 
+# Supported Claims Validators
+The following validators are supported:
+
+```go
+func ForAudience(audience string) Rule
+func IdentifiedBy(identifier string) Rule
+func IssuedBy(issuer string) Rule
+func NotExpired() Rule
+func Subject(subject string) Rule
+func ValidAt(t time.Time) Rule
+```
+
+A token using claims all the claims which can be validated can be constructed as follows:
+
+```go
+token := paseto.NewToken()
+
+token.SetAudience("audience")
+token.SetJti("identifier")
+token.SetIssuer("issuer")
+token.SetSubject("subject")
+
+token.SetExpiration(time.Now().Add(time.Minute))
+token.SetNotBefore(time.Now())
+token.SetIssuedAt(time.Now())
+
+secretKeyHex := "b4cbfb43df4ce210727d953e4a713307fa19bb7d9f85041438d9e11b942a37741eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2"
+secretKey, _ := paseto.NewV4AsymmetricSecretKeyFromHex(secretKeyHex)
+
+signed := token.V4Sign(secretKey, nil)
+```
+
+The token in `signed` can then be validated using a public key as follows:
+```go
+parser := paseto.NewParser()
+parser.AddRule(paseto.ForAudience("audience"))
+parser.AddRule(paseto.IdentifiedBy("identifier"))
+parser.AddRule(paseto.IssuedBy("issuer"))
+parser.AddRule(paseto.Subject("subject"))
+parser.AddRule(paseto.NotExpired())
+parser.AddRule(paseto.ValidAt(time.Now()))
+
+publicKeyHex := "1eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2"
+publicKey, err := paseto.NewV4AsymmetricPublicKeyFromHex(publicKeyHex)
+if err != nil {
+    // panic or deal with error of invalid key
+}
+
+parsedToken, err := parser.ParseV4Public(publicKey, signed, nil)
+if err != nil {
+    // deal with error of token which failed to be validated, or cryptographically verified
+}
+```
+
+If everything succeeds, the value in `parsedToken` will be equivalent to that in `token`.
+
 # Supported Paseto Versions
-## Version 2
-Version 2 is fully supported.
-## Version 3
-Version 3 supports only local mode (so far).
 ## Version 4
 Version 4 is fully supported.
+## Version 3
+Version 3 supports only local mode (so far).
+## Version 2
+Version 2 is fully supported.

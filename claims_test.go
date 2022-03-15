@@ -159,3 +159,36 @@ func TestPastExp(t *testing.T) {
 	_, err := parser.ParseV4Local(key, encrypted, nil)
 	require.Error(t, err)
 }
+
+func TestReadMeExample(t *testing.T) {
+	token := NewToken()
+
+	token.SetAudience("audience")
+	token.SetJti("identifier")
+	token.SetIssuer("issuer")
+	token.SetSubject("subject")
+
+	token.SetExpiration(time.Now().Add(time.Minute))
+	token.SetNotBefore(time.Now())
+	token.SetIssuedAt(time.Now())
+
+	secretKeyHex := "b4cbfb43df4ce210727d953e4a713307fa19bb7d9f85041438d9e11b942a37741eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2"
+	secretKey, _ := NewV4AsymmetricSecretKeyFromHex(secretKeyHex)
+
+	signed := token.V4Sign(secretKey, nil)
+
+	parser := NewParser()
+	parser.AddRule(ForAudience("audience"))
+	parser.AddRule(IdentifiedBy("identifier"))
+	parser.AddRule(IssuedBy("issuer"))
+	parser.AddRule(Subject("subject"))
+	parser.AddRule(NotExpired())
+	parser.AddRule(ValidAt(time.Now()))
+
+	publicKeyHex := "1eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2"
+	publicKey, _ := NewV4AsymmetricPublicKeyFromHex(publicKeyHex)
+
+	parsedToken, err := parser.ParseV4Public(publicKey, signed, nil)
+	require.NoError(t, err)
+	require.Equal(t, token.ClaimsJSON(), parsedToken.ClaimsJSON())
+}
