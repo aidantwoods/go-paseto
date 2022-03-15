@@ -2,8 +2,6 @@
 
 A Go implementation of [PASETO](https://github.com/paragonie/paseto).
 
-## ⚠️  WARNING: IMPLEMENTATION IS A PRE-RELEASE.
-
 Paseto is everything you love about JOSE (JWT, JWE, JWS) without any of the
 [many design deficits that plague the JOSE standards](https://paragonie.com/blog/2017/03/jwt-json-web-tokens-is-bad-standard-that-everyone-should-avoid).
 
