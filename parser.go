@@ -112,7 +112,8 @@ func (p Parser) ParseV4Public(key V4AsymmetricPublicKey, tainted string, implici
 }
 
 // UnsafeParseFooter returns the footer of a Paseto message. Beware that this
-// footer is not cryptographically verified at this stage.
+// footer is not cryptographically verified at this stage, nor are any claims
+// validated.
 func (p Parser) UnsafeParseFooter(protocol Protocol, tainted string) ([]byte, error) {
 	message, err := NewMessage(protocol, tainted)
 	if err != nil {
