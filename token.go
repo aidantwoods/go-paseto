@@ -157,12 +157,12 @@ func (t Token) packet() packet {
 
 // V2Sign signs the token, using the given key.
 func (t Token) V2Sign(key V2AsymmetricSecretKey) string {
-	return v2PublicSign(t.packet(), key).Encoded()
+	return v2PublicSign(t.packet(), key).encoded()
 }
 
 // V2Encrypt signs the token, using the given key.
 func (t Token) V2Encrypt(key V2SymmetricKey) string {
-	return v2LocalEncrypt(t.packet(), key, nil).Encoded()
+	return v2LocalEncrypt(t.packet(), key, nil).encoded()
 }
 
 // V3Encrypt signs the token, using the given key and implicit bytes. Implicit
@@ -171,7 +171,7 @@ func (t Token) V2Encrypt(key V2SymmetricKey) string {
 // Implicit must be reprovided for successful decryption, and can not be
 // recovered.
 func (t Token) V3Encrypt(key V3SymmetricKey, implicit []byte) string {
-	return v3LocalEncrypt(t.packet(), key, implicit, nil).Encoded()
+	return v3LocalEncrypt(t.packet(), key, implicit, nil).encoded()
 }
 
 // V4Sign signs the token, using the given key and implicit bytes. Implicit
@@ -180,7 +180,7 @@ func (t Token) V3Encrypt(key V3SymmetricKey, implicit []byte) string {
 // Implicit must be reprovided for successful verification, and can not be
 // recovered.
 func (t Token) V4Sign(key V4AsymmetricSecretKey, implicit []byte) string {
-	return v4PublicSign(t.packet(), key, implicit).Encoded()
+	return v4PublicSign(t.packet(), key, implicit).encoded()
 }
 
 // V4Encrypt signs the token, using the given key and implicit bytes. Implicit
@@ -189,7 +189,7 @@ func (t Token) V4Sign(key V4AsymmetricSecretKey, implicit []byte) string {
 // Implicit must be reprovided for successful decryption, and can not be
 // recovered.
 func (t Token) V4Encrypt(key V4SymmetricKey, implicit []byte) string {
-	return v4LocalEncrypt(t.packet(), key, implicit, nil).Encoded()
+	return v4LocalEncrypt(t.packet(), key, implicit, nil).encoded()
 }
 
 type tokenValue struct {

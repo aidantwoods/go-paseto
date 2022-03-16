@@ -9,7 +9,7 @@ import (
 
 // Message is a building block type, only use if you need to use Paseto
 // cryptography without Paseto's token or validator semantics.
-type Message struct {
+type message struct {
 	protocol Protocol
 	p        payload
 	footer   []byte
@@ -18,48 +18,48 @@ type Message struct {
 // NewMessage creates a new message from the given token, with an expected
 // protocol. If the given token does not match the given token, or if the
 // token cannot be parsed, will return an error instead.
-func NewMessage(protocol Protocol, token string) (Message, error) {
+func newMessage(protocol Protocol, token string) (message, error) {
 	header, encodedPayload, encodedFooter, err := deconstructToken(token)
 	if err != nil {
-		return Message{}, err
+		return message{}, err
 	}
 
 	if header != protocol.Header() {
-		return Message{}, errors.Errorf("Message header is not valid with the given purpose, expected %s got %s", protocol.Header(), header)
+		return message{}, errors.Errorf("Message header is not valid with the given purpose, expected %s got %s", protocol.Header(), header)
 	}
 
 	payloadBytes, err := encoding.Decode(encodedPayload)
 	if err != nil {
-		return Message{}, err
+		return message{}, err
 	}
 
 	footer, err := encoding.Decode(encodedFooter)
 	if err != nil {
-		return Message{}, err
+		return message{}, err
 	}
 
 	payload, err := protocol.newPayload(payloadBytes)
 	if err != nil {
-		return Message{}, err
+		return message{}, err
 	}
 
 	return newMessageFromPayload(payload, footer), nil
 }
 
 // Header returns the header string for a Paseto message.
-func (m Message) Header() string {
+func (m message) header() string {
 	return m.protocol.Header()
 }
 
 // UnsafeFooter returns the footer of a Paseto message. Beware that this footer
 // is not cryptographically verified at this stage.
-func (m Message) UnsafeFooter() []byte {
+func (m message) unsafeFooter() []byte {
 	return m.footer
 }
 
 // Encoded returns the string representation of a Paseto message.
-func (m Message) Encoded() string {
-	main := m.Header() + encoding.Encode(m.p.bytes())
+func (m message) encoded() string {
+	main := m.header() + encoding.Encode(m.p.bytes())
 
 	if len(m.footer) == 0 {
 		return main
@@ -68,9 +68,9 @@ func (m Message) Encoded() string {
 	return main + "." + encoding.Encode(m.footer)
 }
 
-func newMessageFromPayload(payload payload, footer []byte) Message {
+func newMessageFromPayload(payload payload, footer []byte) message {
 	if protocol, err := protocolForPayload(payload); err == nil {
-		return Message{protocol, payload, footer}
+		return message{protocol, payload, footer}
 	}
 
 	// Assume internal callers won't construct bad payloads
@@ -101,7 +101,7 @@ func deconstructToken(token string) (header string, encodedPayload string, encod
 // V2Verify will verify a v2 public paseto message. Will return a pointer to
 // the verified token (but not validated with rules) if successful, or error in
 // the event of failure.
-func (m Message) V2Verify(key V2AsymmetricPublicKey) (*Token, error) {
+func (m message) v2Verify(key V2AsymmetricPublicKey) (*Token, error) {
 	packet, err := v2PublicVerify(m, key)
 	if err != nil {
 		return nil, err
@@ -113,7 +113,7 @@ func (m Message) V2Verify(key V2AsymmetricPublicKey) (*Token, error) {
 // V2Decrypt will decrypt a v2 local paseto message. Will return a pointer to
 // the decrypted token (but not validated with rules) if successful, or error in
 // the event of failure.
-func (m Message) V2Decrypt(key V2SymmetricKey) (*Token, error) {
+func (m message) v2Decrypt(key V2SymmetricKey) (*Token, error) {
 	packet, err := v2LocalDecrypt(m, key)
 	if err != nil {
 		return nil, err
@@ -125,7 +125,7 @@ func (m Message) V2Decrypt(key V2SymmetricKey) (*Token, error) {
 // V3Decrypt will decrypt a v3 local paseto message. Will return a pointer to
 // the decrypted token (but not validated with rules) if successful, or error in
 // the event of failure.
-func (m Message) V3Decrypt(key V3SymmetricKey, implicit []byte) (*Token, error) {
+func (m message) v3Decrypt(key V3SymmetricKey, implicit []byte) (*Token, error) {
 	packet, err := v3LocalDecrypt(m, key, implicit)
 	if err != nil {
 		return nil, err
@@ -137,7 +137,7 @@ func (m Message) V3Decrypt(key V3SymmetricKey, implicit []byte) (*Token, error) 
 // V4Verify will verify a v4 public paseto message. Will return a pointer to
 // the verified token (but not validated with rules) if successful, or error in
 // the event of failure.
-func (m Message) V4Verify(key V4AsymmetricPublicKey, implicit []byte) (*Token, error) {
+func (m message) v4Verify(key V4AsymmetricPublicKey, implicit []byte) (*Token, error) {
 	packet, err := v4PublicVerify(m, key, implicit)
 	if err != nil {
 		return nil, err
@@ -149,7 +149,7 @@ func (m Message) V4Verify(key V4AsymmetricPublicKey, implicit []byte) (*Token, e
 // V4Decrypt will decrypt a v4 local paseto message. Will return a pointer to
 // the decrypted token (but not validated with rules) if successful, or error in
 // the event of failure.
-func (m Message) V4Decrypt(key V4SymmetricKey, implicit []byte) (*Token, error) {
+func (m message) v4Decrypt(key V4SymmetricKey, implicit []byte) (*Token, error) {
 	packet, err := v4LocalDecrypt(m, key, implicit)
 	if err != nil {
 		return nil, err

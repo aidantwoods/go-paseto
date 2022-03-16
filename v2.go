@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/chacha20poly1305"
 )
 
-func v2PublicSign(packet packet, key V2AsymmetricSecretKey) Message {
+func v2PublicSign(packet packet, key V2AsymmetricSecretKey) message {
 	data, footer := packet.content, packet.footer
 	header := []byte(V2Public.Header())
 
@@ -28,13 +28,13 @@ func v2PublicSign(packet packet, key V2AsymmetricSecretKey) Message {
 	return newMessageFromPayload(v2PublicPayload{data, signature}, footer)
 }
 
-func v2PublicVerify(message Message, key V2AsymmetricPublicKey) (packet, error) {
-	payload, ok := message.p.(v2PublicPayload)
-	if message.Header() != V2Public.Header() || !ok {
-		return packet{}, errors.Errorf("Cannot decrypt message with header: %s", message.Header())
+func v2PublicVerify(msg message, key V2AsymmetricPublicKey) (packet, error) {
+	payload, ok := msg.p.(v2PublicPayload)
+	if msg.header() != V2Public.Header() || !ok {
+		return packet{}, errors.Errorf("Cannot decrypt message with header: %s", msg.header())
 	}
 
-	header, footer := []byte(message.Header()), message.footer
+	header, footer := []byte(msg.header()), msg.footer
 	data := payload.message
 
 	m2 := encoding.Pae(header, data, footer)
@@ -46,7 +46,7 @@ func v2PublicVerify(message Message, key V2AsymmetricPublicKey) (packet, error) 
 	return packet{data, footer}, nil
 }
 
-func v2LocalEncrypt(p packet, key V2SymmetricKey, unitTestNonce []byte) Message {
+func v2LocalEncrypt(p packet, key V2SymmetricKey, unitTestNonce []byte) message {
 	var b [24]byte
 	random.UseProvidedOrFillBytes(unitTestNonce, b[:])
 
@@ -67,17 +67,17 @@ func v2LocalEncrypt(p packet, key V2SymmetricKey, unitTestNonce []byte) Message 
 	return newMessageFromPayload(v2LocalPayload{nonce, cipherText}, p.footer)
 }
 
-func v2LocalDecrypt(message Message, key V2SymmetricKey) (packet, error) {
-	payload, ok := message.p.(v2LocalPayload)
-	if message.Header() != V2Local.Header() || !ok {
-		return packet{}, errors.Errorf("Cannot decrypt message with header: %s", message.Header())
+func v2LocalDecrypt(msg message, key V2SymmetricKey) (packet, error) {
+	payload, ok := msg.p.(v2LocalPayload)
+	if msg.header() != V2Local.Header() || !ok {
+		return packet{}, errors.Errorf("Cannot decrypt message with header: %s", msg.header())
 	}
 
 	nonce, cipherText := payload.nonce, payload.cipherText
 
-	header := []byte(message.Header())
+	header := []byte(msg.header())
 
-	preAuth := encoding.Pae(header, nonce[:], message.footer)
+	preAuth := encoding.Pae(header, nonce[:], msg.footer)
 
 	cipher, err := chacha20poly1305.NewX(key.material[:])
 	if err != nil {
@@ -89,5 +89,5 @@ func v2LocalDecrypt(message Message, key V2SymmetricKey) (packet, error) {
 		return packet{}, errors.Errorf("The message could not be decrypted. %s", err)
 	}
 
-	return packet{plainText, message.footer}, nil
+	return packet{plainText, msg.footer}, nil
 }

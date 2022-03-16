@@ -34,12 +34,12 @@ func MakeParser(rules []Rule) Parser {
 // ParseV2Local will parse and decrypt a v2 local paseto and validate against
 // any parser rules. Error if parsing, decryption, or any rule fails.
 func (p Parser) ParseV2Local(key V2SymmetricKey, tainted string) (*Token, error) {
-	message, err := NewMessage(V2Local, tainted)
+	message, err := newMessage(V2Local, tainted)
 	if err != nil {
 		return nil, err
 	}
 
-	token, err := message.V2Decrypt(key)
+	token, err := message.v2Decrypt(key)
 	if err != nil {
 		return nil, err
 	}
@@ -50,12 +50,12 @@ func (p Parser) ParseV2Local(key V2SymmetricKey, tainted string) (*Token, error)
 // ParseV2Public will parse and verify a v2 public paseto and validate against
 // any parser rules. Error if parsing, verification, or any rule fails.
 func (p Parser) ParseV2Public(key V2AsymmetricPublicKey, tainted string) (*Token, error) {
-	message, err := NewMessage(V2Public, tainted)
+	message, err := newMessage(V2Public, tainted)
 	if err != nil {
 		return nil, err
 	}
 
-	token, err := message.V2Verify(key)
+	token, err := message.v2Verify(key)
 	if err != nil {
 		return nil, err
 	}
@@ -66,12 +66,12 @@ func (p Parser) ParseV2Public(key V2AsymmetricPublicKey, tainted string) (*Token
 // ParseV3Local will parse and decrypt a v3 local paseto and validate against
 // any parser rules. Error if parsing, decryption, or any rule fails.
 func (p Parser) ParseV3Local(key V3SymmetricKey, tainted string, implicit []byte) (*Token, error) {
-	message, err := NewMessage(V3Local, tainted)
+	message, err := newMessage(V3Local, tainted)
 	if err != nil {
 		return nil, err
 	}
 
-	token, err := message.V3Decrypt(key, implicit)
+	token, err := message.v3Decrypt(key, implicit)
 	if err != nil {
 		return nil, err
 	}
@@ -82,12 +82,12 @@ func (p Parser) ParseV3Local(key V3SymmetricKey, tainted string, implicit []byte
 // ParseV4Local will parse and decrypt a v4 local paseto and validate against
 // any parser rules. Error if parsing, decryption, or any rule fails.
 func (p Parser) ParseV4Local(key V4SymmetricKey, tainted string, implicit []byte) (*Token, error) {
-	message, err := NewMessage(V4Local, tainted)
+	message, err := newMessage(V4Local, tainted)
 	if err != nil {
 		return nil, err
 	}
 
-	token, err := message.V4Decrypt(key, implicit)
+	token, err := message.v4Decrypt(key, implicit)
 	if err != nil {
 		return nil, err
 	}
@@ -98,12 +98,12 @@ func (p Parser) ParseV4Local(key V4SymmetricKey, tainted string, implicit []byte
 // ParseV4Public will parse and verify a v4 public paseto and validate against
 // any parser rules. Error if parsing, verification, or any rule fails.
 func (p Parser) ParseV4Public(key V4AsymmetricPublicKey, tainted string, implicit []byte) (*Token, error) {
-	message, err := NewMessage(V4Public, tainted)
+	message, err := newMessage(V4Public, tainted)
 	if err != nil {
 		return nil, err
 	}
 
-	token, err := message.V4Verify(key, implicit)
+	token, err := message.v4Verify(key, implicit)
 	if err != nil {
 		return nil, err
 	}
@@ -115,12 +115,12 @@ func (p Parser) ParseV4Public(key V4AsymmetricPublicKey, tainted string, implici
 // footer is not cryptographically verified at this stage, nor are any claims
 // validated.
 func (p Parser) UnsafeParseFooter(protocol Protocol, tainted string) ([]byte, error) {
-	message, err := NewMessage(protocol, tainted)
+	message, err := newMessage(protocol, tainted)
 	if err != nil {
 		return nil, err
 	}
 
-	return message.UnsafeFooter(), nil
+	return message.unsafeFooter(), nil
 }
 
 // SetRules will overwrite any currently set rules with those specified.

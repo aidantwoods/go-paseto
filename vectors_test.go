@@ -45,7 +45,7 @@ func TestV2(t *testing.T) {
 				sk, err := V2SymmetricKeyFromHex(test.Key)
 				require.NoError(t, err)
 
-				message, err := NewMessage(V2Local, test.Token)
+				message, err := newMessage(V2Local, test.Token)
 				if test.ExpectFail {
 					require.Error(t, err)
 					return
@@ -64,7 +64,7 @@ func TestV2(t *testing.T) {
 				pk, err := NewV2AsymmetricPublicKeyFromHex(test.PublicKey)
 				require.NoError(t, err)
 
-				message, err := NewMessage(V2Public, test.Token)
+				message, err := newMessage(V2Public, test.Token)
 				if test.ExpectFail {
 					require.Error(t, err)
 					return
@@ -96,7 +96,7 @@ func TestV2(t *testing.T) {
 				encrypted := v2LocalEncrypt(packet, sk, unitTestNonce)
 				require.NoError(t, err)
 
-				require.Equal(t, test.Token, encrypted.Encoded())
+				require.Equal(t, test.Token, encrypted.encoded())
 
 			// Public mode
 			case "":
@@ -106,7 +106,7 @@ func TestV2(t *testing.T) {
 				signed := v2PublicSign(packet, sk)
 				require.NoError(t, err)
 
-				require.Equal(t, test.Token, signed.Encoded())
+				require.Equal(t, test.Token, signed.encoded())
 			}
 		})
 	}
@@ -130,7 +130,7 @@ func TestV3(t *testing.T) {
 				sk, err := V3SymmetricKeyFromHex(test.Key)
 				require.NoError(t, err)
 
-				message, err := NewMessage(V3Local, test.Token)
+				message, err := newMessage(V3Local, test.Token)
 				if test.ExpectFail {
 					require.Error(t, err)
 					return
@@ -168,7 +168,7 @@ func TestV3(t *testing.T) {
 				encrypted := v3LocalEncrypt(packet, sk, implicit, unitTestNonce)
 				require.NoError(t, err)
 
-				require.Equal(t, test.Token, encrypted.Encoded())
+				require.Equal(t, test.Token, encrypted.encoded())
 
 			// Public mode
 			case "":
@@ -197,7 +197,7 @@ func TestV4(t *testing.T) {
 				sk, err := V4SymmetricKeyFromHex(test.Key)
 				require.NoError(t, err)
 
-				message, err := NewMessage(V4Local, test.Token)
+				message, err := newMessage(V4Local, test.Token)
 				if test.ExpectFail {
 					require.Error(t, err)
 					return
@@ -216,7 +216,7 @@ func TestV4(t *testing.T) {
 				pk, err := NewV4AsymmetricPublicKeyFromHex(test.PublicKey)
 				require.NoError(t, err)
 
-				message, err := NewMessage(V4Public, test.Token)
+				message, err := newMessage(V4Public, test.Token)
 				if test.ExpectFail {
 					require.Error(t, err)
 					return
@@ -249,7 +249,7 @@ func TestV4(t *testing.T) {
 				encrypted := v4LocalEncrypt(packet, sk, implicit, unitTestNonce)
 				require.NoError(t, err)
 
-				require.Equal(t, test.Token, encrypted.Encoded())
+				require.Equal(t, test.Token, encrypted.encoded())
 
 			// Public mode
 			case "":
@@ -259,7 +259,7 @@ func TestV4(t *testing.T) {
 				signed := v4PublicSign(packet, sk, implicit)
 				require.NoError(t, err)
 
-				require.Equal(t, test.Token, signed.Encoded())
+				require.Equal(t, test.Token, signed.encoded())
 			}
 		})
 	}

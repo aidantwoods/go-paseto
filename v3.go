@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func v3LocalEncrypt(p packet, key V3SymmetricKey, implicit []byte, unitTestNonce []byte) Message {
+func v3LocalEncrypt(p packet, key V3SymmetricKey, implicit []byte, unitTestNonce []byte) message {
 	var nonce [32]byte
 	random.UseProvidedOrFillBytes(unitTestNonce, nonce[:])
 
@@ -39,18 +39,18 @@ func v3LocalEncrypt(p packet, key V3SymmetricKey, implicit []byte, unitTestNonce
 	return newMessageFromPayload(v3LocalPayload{nonce, cipherText, tag}, p.footer)
 }
 
-func v3LocalDecrypt(message Message, key V3SymmetricKey, implicit []byte) (packet, error) {
-	payload, ok := message.p.(v3LocalPayload)
-	if message.Header() != V3Local.Header() || !ok {
-		return packet{}, errors.Errorf("Cannot decrypt message with header: %s", message.Header())
+func v3LocalDecrypt(msg message, key V3SymmetricKey, implicit []byte) (packet, error) {
+	payload, ok := msg.p.(v3LocalPayload)
+	if msg.header() != V3Local.Header() || !ok {
+		return packet{}, errors.Errorf("Cannot decrypt message with header: %s", msg.header())
 	}
 
 	nonce, cipherText, givenTag := payload.nonce, payload.cipherText, payload.tag
 	encKey, authKey, nonce2 := key.split(nonce)
 
-	header := []byte(message.Header())
+	header := []byte(msg.header())
 
-	preAuth := encoding.Pae(header, nonce[:], cipherText, message.footer, implicit)
+	preAuth := encoding.Pae(header, nonce[:], cipherText, msg.footer, implicit)
 
 	hm := hmac.New(sha512.New384, authKey[:])
 	if _, err := hm.Write(preAuth); err != nil {
@@ -72,5 +72,5 @@ func v3LocalDecrypt(message Message, key V3SymmetricKey, implicit []byte) (packe
 	plainText := make([]byte, len(cipherText))
 	cipher.NewCTR(blockCipher, nonce2[:]).XORKeyStream(plainText, cipherText)
 
-	return packet{plainText, message.footer}, nil
+	return packet{plainText, msg.footer}, nil
 }
