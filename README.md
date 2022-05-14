@@ -165,6 +165,6 @@ If everything succeeds, the value in `parsedToken` will be equivalent to that in
 ## Version 4
 Version 4 is fully supported.
 ## Version 3
-Version 3 supports only local mode (so far).
+Version 3 is fully supported.
 ## Version 2
 Version 2 is fully supported.
