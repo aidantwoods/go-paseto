@@ -1,14 +1,111 @@
 package paseto
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"crypto/sha512"
 	"encoding/hex"
 	"io"
+	"math/big"
 
 	"aidanwoods.dev/go-paseto/internal/random"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/hkdf"
 )
+
+// V3AsymmetricPublicKey v3 public public key
+type V3AsymmetricPublicKey struct {
+	material ecdsa.PublicKey
+}
+
+// NewV3AsymmetricPublicKeyFromHex Construct a v3 public key from hex
+func NewV3AsymmetricPublicKeyFromHex(hexEncoded string) (V3AsymmetricPublicKey, error) {
+	publicKeyBytes, err := hex.DecodeString(hexEncoded)
+
+	if err != nil {
+		// even though we return error, return a random key here rather than
+		// a nil key
+		return NewV3AsymmetricSecretKey().Public(), err
+	}
+
+	if len(publicKeyBytes) != 49 {
+		// even though we return error, return a random key here rather than
+		// a nil key
+		return NewV3AsymmetricSecretKey().Public(), errors.New("Key incorrect length")
+	}
+
+	publicKey := new(ecdsa.PublicKey)
+	publicKey.Curve = elliptic.P384()
+	publicKey.X, publicKey.Y = elliptic.UnmarshalCompressed(elliptic.P384(), publicKeyBytes)
+
+	return V3AsymmetricPublicKey{*publicKey}, nil
+}
+
+func (k V3AsymmetricPublicKey) compressed() []byte {
+	return elliptic.MarshalCompressed(elliptic.P384(), k.material.X, k.material.Y)
+}
+
+// ExportHex export a V3AsymmetricPublicKey to hex for storage
+func (k V3AsymmetricPublicKey) ExportHex() string {
+	return hex.EncodeToString(k.compressed())
+}
+
+// V3AsymmetricSecretKey v3 public private key
+type V3AsymmetricSecretKey struct {
+	material ecdsa.PrivateKey
+}
+
+// Public returns the corresponding public key for a secret key
+func (k V3AsymmetricSecretKey) Public() V3AsymmetricPublicKey {
+	return V3AsymmetricPublicKey{k.material.PublicKey}
+}
+
+// ExportHex export a V3AsymmetricSecretKey to hex for storage
+func (k V3AsymmetricSecretKey) ExportHex() string {
+	return hex.EncodeToString(k.material.D.Bytes())
+}
+
+// NewV3AsymmetricSecretKey generate a new secret key for use with asymmetric
+// cryptography. Don't forget to export the public key for sharing, DO NOT share
+// this secret key.
+func NewV3AsymmetricSecretKey() V3AsymmetricSecretKey {
+	privateKey, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
+
+	if err != nil {
+		panic("CSPRNG failure")
+	}
+
+	return V3AsymmetricSecretKey{*privateKey}
+}
+
+// NewV3AsymmetricSecretKeyFromHex creates a secret key from hex
+func NewV3AsymmetricSecretKeyFromHex(hexEncoded string) (V3AsymmetricSecretKey, error) {
+	secretBytes, err := hex.DecodeString(hexEncoded)
+
+	if err != nil {
+		// even though we return error, return a random key here rather than
+		// a nil key
+		return NewV3AsymmetricSecretKey(), err
+	}
+
+	if len(secretBytes) != 48 {
+		// even though we return error, return a random key here rather than
+		// a nil key
+		return NewV3AsymmetricSecretKey(), errors.New("Key incorrect length")
+	}
+
+	privateKey := new(ecdsa.PrivateKey)
+	privateKey.D = new(big.Int).SetBytes(secretBytes)
+
+	publicKey := new(ecdsa.PublicKey)
+	publicKey.Curve = elliptic.P384()
+	publicKey.X, publicKey.Y = publicKey.Curve.ScalarBaseMult(privateKey.D.Bytes())
+
+	privateKey.PublicKey = *publicKey
+
+	return V3AsymmetricSecretKey{*privateKey}, nil
+}
 
 // V3SymmetricKey v3 local symmetric key
 type V3SymmetricKey struct {

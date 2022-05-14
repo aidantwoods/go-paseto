@@ -34,6 +34,8 @@ var (
 	V2Public = Protocol{Version2, Public}
 	// V3Local represents a v3 protocol in local mode
 	V3Local = Protocol{Version3, Local}
+	// V3Public represents a v3 protocol in public mode
+	V3Public = Protocol{Version3, Public}
 	// V4Local represents a v4 protocol in local mode
 	V4Local = Protocol{Version4, Local}
 	// V4Public represents a v4 protocol in public mode
@@ -67,6 +69,8 @@ func NewProtocol(version Version, purpose Purpose) (Protocol, error) {
 			return Protocol{}, errors.New("Unsupported PASETO purpose")
 		case Local:
 			return V3Local, nil
+		case Public:
+			return V2Public, nil
 		}
 	case Version4:
 		switch purpose {
@@ -114,6 +118,8 @@ func (p Protocol) newPayload(bytes []byte) (payload, error) {
 			return nil, errors.New("Unsupported PASETO purpose")
 		case Local:
 			return newV3LocalPayload(bytes)
+		case Public:
+			return newV3PublicPayload(bytes)
 		}
 	case Version4:
 		switch p.purpose {
@@ -141,6 +147,8 @@ func protocolForPayload(payload payload) (Protocol, error) {
 		return V2Public, nil
 	case v3LocalPayload:
 		return V3Local, nil
+	case v3PublicPayload:
+		return V3Public, nil
 	case v4LocalPayload:
 		return V4Local, nil
 	case v4PublicPayload:

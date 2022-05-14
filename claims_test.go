@@ -54,8 +54,11 @@ func TestAllClaimsPassV3(t *testing.T) {
 	token.SetIssuedAt(time.Now())
 
 	key := NewV3SymmetricKey()
+	secretKey := NewV3AsymmetricSecretKey()
 
 	encrypted := token.V3Encrypt(key, nil)
+
+	signed := token.V3Sign(secretKey, nil)
 
 	parser := NewParser()
 	parser.AddRule(ForAudience("a"))
@@ -66,6 +69,9 @@ func TestAllClaimsPassV3(t *testing.T) {
 	parser.AddRule(ValidAt(time.Now().Add(30 * time.Second)))
 
 	_, err := parser.ParseV3Local(key, encrypted, nil)
+	require.NoError(t, err)
+
+	_, err = parser.ParseV3Public(secretKey.Public(), signed, nil)
 	require.NoError(t, err)
 }
 

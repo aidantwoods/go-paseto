@@ -165,6 +165,15 @@ func (t Token) V2Encrypt(key V2SymmetricKey) string {
 	return v2LocalEncrypt(t.packet(), key, nil).encoded()
 }
 
+// V3Sign signs the token, using the given key and implicit bytes. Implicit
+// bytes are bytes used to calculate the signature, but which are not present in
+// the final token.
+// Implicit must be reprovided for successful verification, and can not be
+// recovered.
+func (t Token) V3Sign(key V3AsymmetricSecretKey, implicit []byte) string {
+	return v3PublicSign(t.packet(), key, implicit).encoded()
+}
+
 // V3Encrypt signs the token, using the given key and implicit bytes. Implicit
 // bytes are bytes used to calculate the encrypted token, but which are not
 // present in the final token (or its decrypted value).
