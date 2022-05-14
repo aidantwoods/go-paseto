@@ -52,8 +52,8 @@ func v3PublicVerify(msg message, key V3AsymmetricPublicKey, implicit []byte) (pa
 
 	hash := sha512.Sum384(m2)
 
-	r := big.NewInt(0).SetBytes(payload.signature[:48])
-	s := big.NewInt(0).SetBytes(payload.signature[48:])
+	r := new(big.Int).SetBytes(payload.signature[:48])
+	s := new(big.Int).SetBytes(payload.signature[48:])
 
 	if !ecdsa.Verify(&key.material, hash[:], r, s) {
 		return packet{}, errors.Errorf("Bad signature")
