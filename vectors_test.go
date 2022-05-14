@@ -3,6 +3,7 @@ package paseto
 import (
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"os"
 	"testing"
 
@@ -203,6 +204,12 @@ func TestV3(t *testing.T) {
 				require.Equal(t, test.Footer, string(decoded.footer))
 			}
 		})
+	}
+}
+
+func TestV3SigLenIncorrect(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		t.Run(fmt.Sprintf("V3 run %d", i), TestV3)
 	}
 }
 

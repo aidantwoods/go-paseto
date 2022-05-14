@@ -27,7 +27,13 @@ func v3PublicSign(packet packet, key V3AsymmetricSecretKey, implicit []byte) mes
 		panic("Failed to sign")
 	}
 
-	sig := append(r.Bytes(), s.Bytes()...)
+	var rBytes [48]byte
+	var sBytes [48]byte
+
+	r.FillBytes(rBytes[:])
+	s.FillBytes(sBytes[:])
+
+	sig := append(rBytes[:], sBytes[:]...)
 
 	if len(sig) != 96 {
 		panic("Bad signature length")
