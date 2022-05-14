@@ -122,6 +122,18 @@ func (m message) v2Decrypt(key V2SymmetricKey) (*Token, error) {
 	return packet.token()
 }
 
+// V3Verify will verify a v4 public paseto message. Will return a pointer to
+// the verified token (but not validated with rules) if successful, or error in
+// the event of failure.
+func (m message) v3Verify(key V3AsymmetricPublicKey, implicit []byte) (*Token, error) {
+	packet, err := v3PublicVerify(m, key, implicit)
+	if err != nil {
+		return nil, err
+	}
+
+	return packet.token()
+}
+
 // V3Decrypt will decrypt a v3 local paseto message. Will return a pointer to
 // the decrypted token (but not validated with rules) if successful, or error in
 // the event of failure.

@@ -146,8 +146,22 @@ func TestV3(t *testing.T) {
 
 			// Public mode
 			case "":
-				t.Log("Skipping...")
-				return
+				pk, err := NewV3AsymmetricPublicKeyFromHex(test.PublicKey)
+				require.NoError(t, err)
+
+				message, err := newMessage(V3Public, test.Token)
+				if test.ExpectFail {
+					require.Error(t, err)
+					return
+				}
+				require.NoError(t, err)
+
+				decoded, err = v3PublicVerify(message, pk, []byte(test.ImplicitAssertation))
+				if test.ExpectFail {
+					require.Error(t, err)
+					return
+				}
+				require.NoError(t, err)
 			}
 
 			require.Equal(t, test.Payload, string(decoded.content))
@@ -172,8 +186,21 @@ func TestV3(t *testing.T) {
 
 			// Public mode
 			case "":
-				t.Log("Skipping...")
-				return
+				sk, err := NewV3AsymmetricSecretKeyFromHex(test.SecretKey)
+				require.NoError(t, err)
+
+				signed := v3PublicSign(packet, sk, implicit)
+
+				// v3 signatures are not deterministic in this implementation, so just check that something signed can be verified
+
+				pk, err := NewV3AsymmetricPublicKeyFromHex(test.PublicKey)
+				require.NoError(t, err)
+
+				decoded, err = v3PublicVerify(signed, pk, []byte(test.ImplicitAssertation))
+				require.NoError(t, err)
+
+				require.JSONEq(t, test.Payload, string(decoded.content))
+				require.Equal(t, test.Footer, string(decoded.footer))
 			}
 		})
 	}

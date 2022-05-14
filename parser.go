@@ -79,6 +79,22 @@ func (p Parser) ParseV3Local(key V3SymmetricKey, tainted string, implicit []byte
 	return p.validate(*token)
 }
 
+// ParseV3Public will parse and verify a v3 public paseto and validate against
+// any parser rules. Error if parsing, verification, or any rule fails.
+func (p Parser) ParseV3Public(key V3AsymmetricPublicKey, tainted string, implicit []byte) (*Token, error) {
+	message, err := newMessage(V3Public, tainted)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := message.v3Verify(key, implicit)
+	if err != nil {
+		return nil, err
+	}
+
+	return p.validate(*token)
+}
+
 // ParseV4Local will parse and decrypt a v4 local paseto and validate against
 // any parser rules. Error if parsing, decryption, or any rule fails.
 func (p Parser) ParseV4Local(key V4SymmetricKey, tainted string, implicit []byte) (*Token, error) {

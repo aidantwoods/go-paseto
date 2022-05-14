@@ -4,6 +4,31 @@ import (
 	"github.com/pkg/errors"
 )
 
+type v3PublicPayload struct {
+	message   []byte
+	signature [96]byte
+}
+
+func (p v3PublicPayload) bytes() []byte {
+	return append(p.message, p.signature[:]...)
+}
+
+func newV3PublicPayload(bytes []byte) (v3PublicPayload, error) {
+	signatureOffset := len(bytes) - 96
+
+	if signatureOffset < 0 {
+		return v3PublicPayload{}, errors.New("Payload is not long enough to be a valid Paseto message")
+	}
+
+	message := make([]byte, len(bytes)-96)
+	copy(message, bytes[:signatureOffset])
+
+	var signature [96]byte
+	copy(signature[:], bytes[signatureOffset:])
+
+	return v3PublicPayload{message, signature}, nil
+}
+
 type v3LocalPayload struct {
 	nonce      [32]byte
 	cipherText []byte
