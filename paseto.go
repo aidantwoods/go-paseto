@@ -34,7 +34,7 @@ var (
 	V2Public = Protocol{Version2, Public}
 	// V3Local represents a v3 protocol in local mode
 	V3Local = Protocol{Version3, Local}
-	// V3Public represents a v4 protocol in public mode
+	// V3Public represents a v3 protocol in public mode
 	V3Public = Protocol{Version3, Public}
 	// V4Local represents a v4 protocol in local mode
 	V4Local = Protocol{Version4, Local}
