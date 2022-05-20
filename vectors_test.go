@@ -1,4 +1,4 @@
-package paseto
+package paseto_test
 
 import (
 	"encoding/hex"
@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	"aidanwoods.dev/go-paseto"
 	"github.com/stretchr/testify/require"
 )
 
@@ -38,22 +39,22 @@ func TestV2(t *testing.T) {
 
 	for _, test := range tests.Tests {
 		t.Run(test.Name, func(t *testing.T) {
-			var decoded packet
+			var decoded paseto.Packet
 
 			switch test.Key {
 			// Local mode
 			default:
-				sk, err := V2SymmetricKeyFromHex(test.Key)
+				sk, err := paseto.V2SymmetricKeyFromHex(test.Key)
 				require.NoError(t, err)
 
-				message, err := newMessage(V2Local, test.Token)
+				message, err := paseto.NewMessage(paseto.V2Local, test.Token)
 				if test.ExpectFail {
 					require.Error(t, err)
 					return
 				}
 				require.NoError(t, err)
 
-				decoded, err = v2LocalDecrypt(message, sk)
+				decoded, err = paseto.V2LocalDecrypt(message, sk)
 				if test.ExpectFail {
 					require.Error(t, err)
 					return
@@ -62,17 +63,17 @@ func TestV2(t *testing.T) {
 
 			// Public mode
 			case "":
-				pk, err := NewV2AsymmetricPublicKeyFromHex(test.PublicKey)
+				pk, err := paseto.NewV2AsymmetricPublicKeyFromHex(test.PublicKey)
 				require.NoError(t, err)
 
-				message, err := newMessage(V2Public, test.Token)
+				message, err := paseto.NewMessage(paseto.V2Public, test.Token)
 				if test.ExpectFail {
 					require.Error(t, err)
 					return
 				}
 				require.NoError(t, err)
 
-				decoded, err = v2PublicVerify(message, pk)
+				decoded, err = paseto.V2PublicVerify(message, pk)
 				if test.ExpectFail {
 					require.Error(t, err)
 					return
@@ -80,34 +81,34 @@ func TestV2(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			require.Equal(t, test.Payload, string(decoded.content))
-			require.Equal(t, test.Footer, string(decoded.footer))
+			require.Equal(t, test.Payload, string(decoded.Content()))
+			require.Equal(t, test.Footer, string(decoded.Footer()))
 
-			packet := newPacket([]byte(test.Payload), []byte(test.Footer))
+			packet := paseto.NewPacket([]byte(test.Payload), []byte(test.Footer))
 
 			switch test.Key {
 			// Local mode
 			default:
-				sk, err := V2SymmetricKeyFromHex(test.Key)
+				sk, err := paseto.V2SymmetricKeyFromHex(test.Key)
 				require.NoError(t, err)
 
 				unitTestNonce, err := hex.DecodeString(test.Nonce)
 				require.NoError(t, err)
 
-				encrypted := v2LocalEncrypt(packet, sk, unitTestNonce)
+				encrypted := paseto.V2LocalEncrypt(packet, sk, unitTestNonce)
 				require.NoError(t, err)
 
-				require.Equal(t, test.Token, encrypted.encoded())
+				require.Equal(t, test.Token, encrypted.Encoded())
 
 			// Public mode
 			case "":
-				sk, err := NewV2AsymmetricSecretKeyFromHex(test.SecretKey)
+				sk, err := paseto.NewV2AsymmetricSecretKeyFromHex(test.SecretKey)
 				require.NoError(t, err)
 
-				signed := v2PublicSign(packet, sk)
+				signed := paseto.V2PublicSign(packet, sk)
 				require.NoError(t, err)
 
-				require.Equal(t, test.Token, signed.encoded())
+				require.Equal(t, test.Token, signed.Encoded())
 			}
 		})
 	}
@@ -123,22 +124,22 @@ func TestV3(t *testing.T) {
 
 	for _, test := range tests.Tests {
 		t.Run(test.Name, func(t *testing.T) {
-			var decoded packet
+			var decoded paseto.Packet
 
 			switch test.Key {
 			// Local mode
 			default:
-				sk, err := V3SymmetricKeyFromHex(test.Key)
+				sk, err := paseto.V3SymmetricKeyFromHex(test.Key)
 				require.NoError(t, err)
 
-				message, err := newMessage(V3Local, test.Token)
+				message, err := paseto.NewMessage(paseto.V3Local, test.Token)
 				if test.ExpectFail {
 					require.Error(t, err)
 					return
 				}
 				require.NoError(t, err)
 
-				decoded, err = v3LocalDecrypt(message, sk, []byte(test.ImplicitAssertation))
+				decoded, err = paseto.V3LocalDecrypt(message, sk, []byte(test.ImplicitAssertation))
 				if test.ExpectFail {
 					require.Error(t, err)
 					return
@@ -147,17 +148,17 @@ func TestV3(t *testing.T) {
 
 			// Public mode
 			case "":
-				pk, err := NewV3AsymmetricPublicKeyFromHex(test.PublicKey)
+				pk, err := paseto.NewV3AsymmetricPublicKeyFromHex(test.PublicKey)
 				require.NoError(t, err)
 
-				message, err := newMessage(V3Public, test.Token)
+				message, err := paseto.NewMessage(paseto.V3Public, test.Token)
 				if test.ExpectFail {
 					require.Error(t, err)
 					return
 				}
 				require.NoError(t, err)
 
-				decoded, err = v3PublicVerify(message, pk, []byte(test.ImplicitAssertation))
+				decoded, err = paseto.V3PublicVerify(message, pk, []byte(test.ImplicitAssertation))
 				if test.ExpectFail {
 					require.Error(t, err)
 					return
@@ -165,43 +166,43 @@ func TestV3(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			require.Equal(t, test.Payload, string(decoded.content))
-			require.Equal(t, test.Footer, string(decoded.footer))
+			require.Equal(t, test.Payload, string(decoded.Content()))
+			require.Equal(t, test.Footer, string(decoded.Footer()))
 
-			packet := newPacket([]byte(test.Payload), []byte(test.Footer))
+			packet := paseto.NewPacket([]byte(test.Payload), []byte(test.Footer))
 			implicit := []byte(test.ImplicitAssertation)
 
 			switch test.Key {
 			// Local mode
 			default:
-				sk, err := V3SymmetricKeyFromHex(test.Key)
+				sk, err := paseto.V3SymmetricKeyFromHex(test.Key)
 				require.NoError(t, err)
 
 				unitTestNonce, err := hex.DecodeString(test.Nonce)
 				require.NoError(t, err)
 
-				encrypted := v3LocalEncrypt(packet, sk, implicit, unitTestNonce)
+				encrypted := paseto.V3LocalEncrypt(packet, sk, implicit, unitTestNonce)
 				require.NoError(t, err)
 
-				require.Equal(t, test.Token, encrypted.encoded())
+				require.Equal(t, test.Token, encrypted.Encoded())
 
 			// Public mode
 			case "":
-				sk, err := NewV3AsymmetricSecretKeyFromHex(test.SecretKey)
+				sk, err := paseto.NewV3AsymmetricSecretKeyFromHex(test.SecretKey)
 				require.NoError(t, err)
 
-				signed := v3PublicSign(packet, sk, implicit)
+				signed := paseto.V3PublicSign(packet, sk, implicit)
 
 				// v3 signatures are not deterministic in this implementation, so just check that something signed can be verified
 
-				pk, err := NewV3AsymmetricPublicKeyFromHex(test.PublicKey)
+				pk, err := paseto.NewV3AsymmetricPublicKeyFromHex(test.PublicKey)
 				require.NoError(t, err)
 
-				decoded, err = v3PublicVerify(signed, pk, []byte(test.ImplicitAssertation))
+				decoded, err = paseto.V3PublicVerify(signed, pk, []byte(test.ImplicitAssertation))
 				require.NoError(t, err)
 
-				require.JSONEq(t, test.Payload, string(decoded.content))
-				require.Equal(t, test.Footer, string(decoded.footer))
+				require.Equal(t, test.Payload, string(decoded.Content()))
+				require.Equal(t, test.Footer, string(decoded.Footer()))
 			}
 		})
 	}
@@ -223,22 +224,22 @@ func TestV4(t *testing.T) {
 
 	for _, test := range tests.Tests {
 		t.Run(test.Name, func(t *testing.T) {
-			var decoded packet
+			var decoded paseto.Packet
 
 			switch test.Key {
 			// Local mode
 			default:
-				sk, err := V4SymmetricKeyFromHex(test.Key)
+				sk, err := paseto.V4SymmetricKeyFromHex(test.Key)
 				require.NoError(t, err)
 
-				message, err := newMessage(V4Local, test.Token)
+				message, err := paseto.NewMessage(paseto.V4Local, test.Token)
 				if test.ExpectFail {
 					require.Error(t, err)
 					return
 				}
 				require.NoError(t, err)
 
-				decoded, err = v4LocalDecrypt(message, sk, []byte(test.ImplicitAssertation))
+				decoded, err = paseto.V4LocalDecrypt(message, sk, []byte(test.ImplicitAssertation))
 				if test.ExpectFail {
 					require.Error(t, err)
 					return
@@ -247,17 +248,17 @@ func TestV4(t *testing.T) {
 
 			// Public mode
 			case "":
-				pk, err := NewV4AsymmetricPublicKeyFromHex(test.PublicKey)
+				pk, err := paseto.NewV4AsymmetricPublicKeyFromHex(test.PublicKey)
 				require.NoError(t, err)
 
-				message, err := newMessage(V4Public, test.Token)
+				message, err := paseto.NewMessage(paseto.V4Public, test.Token)
 				if test.ExpectFail {
 					require.Error(t, err)
 					return
 				}
 				require.NoError(t, err)
 
-				decoded, err = v4PublicVerify(message, pk, []byte(test.ImplicitAssertation))
+				decoded, err = paseto.V4PublicVerify(message, pk, []byte(test.ImplicitAssertation))
 				if test.ExpectFail {
 					require.Error(t, err)
 					return
@@ -265,35 +266,35 @@ func TestV4(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			require.Equal(t, test.Payload, string(decoded.content))
-			require.Equal(t, test.Footer, string(decoded.footer))
+			require.Equal(t, test.Payload, string(decoded.Content()))
+			require.Equal(t, test.Footer, string(decoded.Footer()))
 
-			packet := newPacket([]byte(test.Payload), []byte(test.Footer))
+			packet := paseto.NewPacket([]byte(test.Payload), []byte(test.Footer))
 			implicit := []byte(test.ImplicitAssertation)
 
 			switch test.Key {
 			// Local mode
 			default:
-				sk, err := V4SymmetricKeyFromHex(test.Key)
+				sk, err := paseto.V4SymmetricKeyFromHex(test.Key)
 				require.NoError(t, err)
 
 				unitTestNonce, err := hex.DecodeString(test.Nonce)
 				require.NoError(t, err)
 
-				encrypted := v4LocalEncrypt(packet, sk, implicit, unitTestNonce)
+				encrypted := paseto.V4LocalEncrypt(packet, sk, implicit, unitTestNonce)
 				require.NoError(t, err)
 
-				require.Equal(t, test.Token, encrypted.encoded())
+				require.Equal(t, test.Token, encrypted.Encoded())
 
 			// Public mode
 			case "":
-				sk, err := NewV4AsymmetricSecretKeyFromHex(test.SecretKey)
+				sk, err := paseto.NewV4AsymmetricSecretKeyFromHex(test.SecretKey)
 				require.NoError(t, err)
 
-				signed := v4PublicSign(packet, sk, implicit)
+				signed := paseto.V4PublicSign(packet, sk, implicit)
 				require.NoError(t, err)
 
-				require.Equal(t, test.Token, signed.encoded())
+				require.Equal(t, test.Token, signed.Encoded())
 			}
 		})
 	}

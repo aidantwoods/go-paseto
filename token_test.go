@@ -1,13 +1,14 @@
-package paseto
+package paseto_test
 
 import (
 	"testing"
 
+	"aidanwoods.dev/go-paseto"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSomeString(t *testing.T) {
-	token := NewToken()
+	token := paseto.NewToken()
 
 	err := token.Set("foo", "bar")
 	require.NoError(t, err)
@@ -20,7 +21,7 @@ func TestSomeString(t *testing.T) {
 }
 
 func TestSomeInt(t *testing.T) {
-	token := NewToken()
+	token := paseto.NewToken()
 
 	err := token.Set("foo", 3)
 	require.NoError(t, err)
@@ -37,7 +38,7 @@ func TestSomeInt(t *testing.T) {
 }
 
 func TestSomeBool(t *testing.T) {
-	token := NewToken()
+	token := paseto.NewToken()
 
 	err := token.Set("foo", true)
 	require.NoError(t, err)
@@ -62,7 +63,7 @@ func TestSomeStruct(t *testing.T) {
 
 	someStruct := SomeStruct{"boo", 3, true}
 
-	token := NewToken()
+	token := paseto.NewToken()
 
 	err := token.Set("baz", someStruct)
 	require.NoError(t, err)
@@ -83,7 +84,7 @@ func TestSomeWrongType(t *testing.T) {
 
 	someStruct := SomeStruct{"boo", 3, true}
 
-	token := NewToken()
+	token := paseto.NewToken()
 
 	err := token.Set("baz", someStruct)
 	require.NoError(t, err)
@@ -94,7 +95,7 @@ func TestSomeWrongType(t *testing.T) {
 }
 
 func TestSomeWrongKey(t *testing.T) {
-	token := NewToken()
+	token := paseto.NewToken()
 
 	err := token.Set("foo", "bar")
 	require.NoError(t, err)
@@ -113,7 +114,7 @@ func TestFromMap(t *testing.T) {
 
 	someStruct := SomeStruct{"boo", 3, true}
 
-	token, err := MakeToken(
+	token, err := paseto.MakeToken(
 		map[string]interface{}{
 			"foo": "bar",
 			"baz": someStruct,
@@ -144,7 +145,7 @@ func TestJsonEncode(t *testing.T) {
 
 	someStruct := SomeStruct{"boo", 3, true}
 
-	token, err := MakeToken(
+	token, err := paseto.MakeToken(
 		map[string]interface{}{
 			"foo": "bar",
 			"baz": someStruct,
@@ -162,7 +163,7 @@ func TestJsonEncode(t *testing.T) {
 func TestJsonParse(t *testing.T) {
 	data := `{"foo":"bar","baz":{"Field1":"boo","Field2":3,"Field3":true}}`
 
-	token, err := NewTokenFromClaimsJSON([]byte(data), nil)
+	token, err := paseto.NewTokenFromClaimsJSON([]byte(data), nil)
 	require.NoError(t, err)
 
 	type SomeStruct struct {
@@ -197,7 +198,7 @@ func TestSignSelfConsistent(t *testing.T) {
 
 	someStruct := SomeStruct{"boo", 3, true}
 
-	token, err := MakeToken(
+	token, err := paseto.MakeToken(
 		map[string]interface{}{
 			"foo": "bar",
 			"baz": someStruct,
@@ -206,9 +207,9 @@ func TestSignSelfConsistent(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	parser := NewParserWithoutExpiryCheck()
+	parser := paseto.NewParserWithoutExpiryCheck()
 
-	key := NewV4AsymmetricSecretKey()
+	key := paseto.NewV4AsymmetricSecretKey()
 
 	signed := token.V4Sign(key, nil)
 
@@ -232,7 +233,7 @@ func TestEncryptSelfConsistent(t *testing.T) {
 
 	someStruct := SomeStruct{"boo", 3, true}
 
-	token, err := MakeToken(
+	token, err := paseto.MakeToken(
 		map[string]interface{}{
 			"foo": "bar",
 			"baz": someStruct,
@@ -241,9 +242,9 @@ func TestEncryptSelfConsistent(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	parser := NewParserWithoutExpiryCheck()
+	parser := paseto.NewParserWithoutExpiryCheck()
 
-	key := NewV4SymmetricKey()
+	key := paseto.NewV4SymmetricKey()
 
 	encrypted := token.V4Encrypt(key, nil)
 
@@ -257,10 +258,10 @@ func TestEncryptSelfConsistent(t *testing.T) {
 }
 
 func TestReadmePublicExample(t *testing.T) {
-	publicKey, _ := NewV4AsymmetricPublicKeyFromHex("1eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2")
+	publicKey, _ := paseto.NewV4AsymmetricPublicKeyFromHex("1eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2")
 	signed := "v4.public.eyJkYXRhIjoidGhpcyBpcyBhIHNpZ25lZCBtZXNzYWdlIiwiZXhwIjoiMjAyMi0wMS0wMVQwMDowMDowMCswMDowMCJ9v3Jt8mx_TdM2ceTGoqwrh4yDFn0XsHvvV_D0DtwQxVrJEBMl0F2caAdgnpKlt4p7xBnx1HcO-SPo8FPp214HDw.eyJraWQiOiJ6VmhNaVBCUDlmUmYyc25FY1Q3Z0ZUaW9lQTlDT2NOeTlEZmdMMVc2MGhhTiJ9"
 
-	parser := NewParserWithoutExpiryCheck()
+	parser := paseto.NewParserWithoutExpiryCheck()
 
 	token, err := parser.ParseV4Public(publicKey, signed, nil)
 	require.NoError(t, err)
