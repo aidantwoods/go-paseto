@@ -22,6 +22,11 @@ func NewV2AsymmetricPublicKeyFromHex(hexEncoded string) (V2AsymmetricPublicKey, 
 		return NewV2AsymmetricSecretKey().Public(), err
 	}
 
+	return NewV2AsymmetricPublicKeyFromBytes(publicKey)
+}
+
+// NewV2AsymmetricPublicKeyFromBytes Construct a v2 public key from bytes
+func NewV2AsymmetricPublicKeyFromBytes(publicKey []byte) (V2AsymmetricPublicKey, error) {
 	if len(publicKey) != 32 {
 		// even though we return error, return a random key here rather than
 		// a nil key
@@ -33,7 +38,12 @@ func NewV2AsymmetricPublicKeyFromHex(hexEncoded string) (V2AsymmetricPublicKey, 
 
 // ExportHex export a V2AsymmetricPublicKey to hex for storage
 func (k V2AsymmetricPublicKey) ExportHex() string {
-	return hex.EncodeToString(k.material)
+	return hex.EncodeToString(k.ExportBytes())
+}
+
+// ExportBytes export a V2AsymmetricPublicKey to raw byte array
+func (k V2AsymmetricPublicKey) ExportBytes() []byte {
+	return k.material
 }
 
 // V2AsymmetricSecretKey V2 public private key
@@ -54,7 +64,12 @@ func (k V2AsymmetricSecretKey) Public() V2AsymmetricPublicKey {
 
 // ExportHex export a V2AsymmetricSecretKey to hex for storage
 func (k V2AsymmetricSecretKey) ExportHex() string {
-	return hex.EncodeToString(k.material)
+	return hex.EncodeToString(k.ExportBytes())
+}
+
+// ExportBytes export a V2AsymmetricSecretKey to raw byte array
+func (k V2AsymmetricSecretKey) ExportBytes() []byte {
+	return k.material
 }
 
 // ExportSeedHex export a V2AsymmetricSecretKey's seed to hex for storage
@@ -85,6 +100,11 @@ func NewV2AsymmetricSecretKeyFromHex(hexEncoded string) (V2AsymmetricSecretKey, 
 		return NewV2AsymmetricSecretKey(), err
 	}
 
+	return NewV2AsymmetricSecretKeyFromBytes(privateKey)
+}
+
+// NewV2AsymmetricSecretKeyFromBytes creates a secret key from bytes
+func NewV2AsymmetricSecretKeyFromBytes(privateKey []byte) (V2AsymmetricSecretKey, error) {
 	if len(privateKey) != 64 {
 		// even though we return error, return a random key here rather than
 		// a nil key
@@ -128,7 +148,12 @@ func NewV2SymmetricKey() V2SymmetricKey {
 
 // ExportHex exports the key as hex for storage
 func (k V2SymmetricKey) ExportHex() string {
-	return hex.EncodeToString(k.material[:])
+	return hex.EncodeToString(k.ExportBytes())
+}
+
+// ExportBytes exports the key as raw bytes
+func (k V2SymmetricKey) ExportBytes() []byte {
+	return k.material[:]
 }
 
 // V2SymmetricKeyFromHex constructs a key from hex
@@ -140,6 +165,11 @@ func V2SymmetricKeyFromHex(hexEncoded string) (V2SymmetricKey, error) {
 		return NewV2SymmetricKey(), err
 	}
 
+	return V2SymmetricKeyFromBytes(bytes)
+}
+
+// V2SymmetricKeyFromBytes constructs a key from bytes
+func V2SymmetricKeyFromBytes(bytes []byte) (V2SymmetricKey, error) {
 	if len(bytes) != 32 {
 		// even though we return error, return a random key here rather than
 		// a nil key
