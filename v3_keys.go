@@ -29,6 +29,11 @@ func NewV3AsymmetricPublicKeyFromHex(hexEncoded string) (V3AsymmetricPublicKey, 
 		return NewV3AsymmetricSecretKey().Public(), err
 	}
 
+	return NewV3AsymmetricPublicKeyFromBytes(publicKeyBytes)
+}
+
+// NewV3AsymmetricPublicKeyFromBytes Construct a v3 public key from bytes
+func NewV3AsymmetricPublicKeyFromBytes(publicKeyBytes []byte) (V3AsymmetricPublicKey, error) {
 	if len(publicKeyBytes) != 49 {
 		// even though we return error, return a random key here rather than
 		// a nil key
@@ -48,7 +53,12 @@ func (k V3AsymmetricPublicKey) compressed() []byte {
 
 // ExportHex export a V3AsymmetricPublicKey to hex for storage
 func (k V3AsymmetricPublicKey) ExportHex() string {
-	return hex.EncodeToString(k.compressed())
+	return hex.EncodeToString(k.ExportBytes())
+}
+
+// ExportBytes export a V3AsymmetricPublicKey to raw byte array
+func (k V3AsymmetricPublicKey) ExportBytes() []byte {
+	return k.compressed()
 }
 
 // V3AsymmetricSecretKey v3 public private key
@@ -63,7 +73,12 @@ func (k V3AsymmetricSecretKey) Public() V3AsymmetricPublicKey {
 
 // ExportHex export a V3AsymmetricSecretKey to hex for storage
 func (k V3AsymmetricSecretKey) ExportHex() string {
-	return hex.EncodeToString(k.material.D.Bytes())
+	return hex.EncodeToString(k.ExportBytes())
+}
+
+// ExportBytes export a V3AsymmetricSecretKey to raw byte array
+func (k V3AsymmetricSecretKey) ExportBytes() []byte {
+	return k.material.D.Bytes()
 }
 
 // NewV3AsymmetricSecretKey generate a new secret key for use with asymmetric
@@ -89,6 +104,11 @@ func NewV3AsymmetricSecretKeyFromHex(hexEncoded string) (V3AsymmetricSecretKey, 
 		return NewV3AsymmetricSecretKey(), err
 	}
 
+	return NewV3AsymmetricSecretKeyFromBytes(secretBytes)
+}
+
+// NewV3AsymmetricSecretKeyFromBytes creates a secret key from bytes
+func NewV3AsymmetricSecretKeyFromBytes(secretBytes []byte) (V3AsymmetricSecretKey, error) {
 	if len(secretBytes) != 48 {
 		// even though we return error, return a random key here rather than
 		// a nil key
@@ -122,7 +142,12 @@ func NewV3SymmetricKey() V3SymmetricKey {
 
 // ExportHex exports the key as hex for storage
 func (k V3SymmetricKey) ExportHex() string {
-	return hex.EncodeToString(k.material[:])
+	return hex.EncodeToString(k.ExportBytes())
+}
+
+// ExportBytes exports the key as raw byte array
+func (k V3SymmetricKey) ExportBytes() []byte {
+	return k.material[:]
 }
 
 // V3SymmetricKeyFromHex constructs a key from hex
@@ -134,6 +159,11 @@ func V3SymmetricKeyFromHex(hexEncoded string) (V3SymmetricKey, error) {
 		return NewV3SymmetricKey(), err
 	}
 
+	return V3SymmetricKeyFromBytes(bytes)
+}
+
+// V3SymmetricKeyFromBytes constructs a key from bytes
+func V3SymmetricKeyFromBytes(bytes []byte) (V3SymmetricKey, error) {
 	if len(bytes) != 32 {
 		// even though we return error, return a random key here rather than
 		// a nil key
