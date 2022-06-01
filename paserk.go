@@ -1,6 +1,12 @@
 package paseto
 
-import "fmt"
+import (
+	"encoding/base64"
+	"fmt"
+	"strings"
+
+	"github.com/pkg/errors"
+)
 
 // type of PASERK token
 type PaserkType int
@@ -147,4 +153,33 @@ func (e NotImplementedError) Error() string {
 
 func (e InvalidPaserkTypeError) Error() string {
 	return fmt.Sprintf("PASERK type %s is invalid for key type %s", e.paserkTypeStr, e.keyTypeStr)
+}
+
+func ParsePaserkRaw(paserkStr string) (Key, error) {
+	frags := strings.Split(paserkStr, ".")
+	if len(frags) != 3 {
+		return nil, fmt.Errorf("Invalid PASERK token: %s", paserkStr)
+	}
+	tokenVersion := KeyVersionFromString(frags[0])
+	typ := PaserkTypeFromString(frags[1])
+	data, err := base64.RawURLEncoding.DecodeString(frags[2])
+	if err != nil {
+		return nil, errors.Wrap(err, "can't decode data part of pasrk key")
+	}
+
+	switch tokenVersion {
+	case KeyVersionV4:
+		switch typ {
+		case PaserkTypePublic:
+			key, err := NewV4AsymmetricPublicKeyFromBytes(data)
+			if err != nil {
+				return nil, errors.Wrap(err, "can't construct key from data part of paserk key")
+			}
+			return &key, nil
+		default:
+			return nil, NotImplementedError{frags[0], frags[1]}
+		}
+	default:
+		return nil, NotImplementedError{frags[0], frags[1]}
+	}
 }

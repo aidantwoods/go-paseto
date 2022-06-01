@@ -330,4 +330,19 @@ func TestPaserkV4Public(t *testing.T) {
 			require.Equal(t, test.Paserk, token)
 		})
 	}
+
+	for _, test := range tests.Tests {
+		t.Run(test.Name+"-reverse", func(t *testing.T) {
+
+			k, err := paseto.ParsePaserkRaw(test.Paserk)
+			if test.ExpectFail {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+
+			v4key := k.(*paseto.V4AsymmetricPublicKey)
+			require.Equal(t, test.Key, v4key.ExportHex())
+		})
+	}
 }
