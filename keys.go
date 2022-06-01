@@ -56,7 +56,7 @@ func KeyVersionToString(version KeyVersion) string {
 }
 
 // Parse key version from PASERK header string (eg. "k2")
-func ParseKeyVersionFromString(versionStr string) KeyVersion {
+func KeyVersionFromString(versionStr string) KeyVersion {
 	switch versionStr {
 	case "k1":
 		return KeyVersionV1
