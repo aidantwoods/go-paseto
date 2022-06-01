@@ -2,7 +2,9 @@ package paseto
 
 import (
 	"crypto/ed25519"
+	"encoding/base64"
 	"encoding/hex"
+	"fmt"
 
 	"aidanwoods.dev/go-paseto/internal/hashing"
 	"aidanwoods.dev/go-paseto/internal/random"
@@ -46,6 +48,26 @@ func (k V4AsymmetricPublicKey) ExportHex() string {
 // ExportBytes export a V4AsymmetricPublicKey to raw byte array
 func (k V4AsymmetricPublicKey) ExportBytes() []byte {
 	return k.material
+}
+
+// ExportPaserk export a V4AsymmetricPublicKey to a paserk token of type paserkType
+func (k V4AsymmetricPublicKey) ExportPaserk(paserkType PaserkType) (string, error) {
+	if !paserkType.isAvailableForKey(&k) {
+		return "", InvalidPaserkTypeError{fmt.Sprintf("%T", k), PaserkTypeToString(paserkType)}
+	}
+	if paserkType != PaserkTypePublic {
+		return "", NotImplementedError{fmt.Sprintf("%T", k), PaserkTypeToString(paserkType)}
+	}
+	header := KeyVersionToString(k.getVersion()) + "." + PaserkTypeToString(paserkType) + "."
+	data := base64.RawURLEncoding.EncodeToString(k.ExportBytes())
+	return header + data, nil
+}
+
+func (k *V4AsymmetricPublicKey) getVersion() KeyVersion {
+	return KeyVersionV4
+}
+func (k *V4AsymmetricPublicKey) getPurpose() keyPurpose {
+	return keyPurposePublic
 }
 
 // V4AsymmetricSecretKey v4 public private key
