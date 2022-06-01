@@ -155,6 +155,33 @@ func (e InvalidPaserkTypeError) Error() string {
 	return fmt.Sprintf("PASERK type %s is invalid for key type %s", e.paserkTypeStr, e.keyTypeStr)
 }
 
+// ExportPaserk export a V4AsymmetricPublicKey to a paserk token of type paserkType
+func ExportPaserkRaw(k Key) (string, error) {
+	var paserkType PaserkType
+	switch k.getPurpose() {
+	case keyPurposeLocal:
+		paserkType = PaserkTypeLocal
+		break
+	case keyPurposeSecret:
+		paserkType = PaserkTypeSecret
+		break
+	case keyPurposePublic:
+		paserkType = PaserkTypePublic
+		break
+	default:
+		return "", errors.New("invalid key purpose")
+	}
+	if !paserkType.isAvailableForKey(k) {
+		return "", InvalidPaserkTypeError{fmt.Sprintf("%T", k), PaserkTypeToString(paserkType)}
+	}
+	if paserkType != PaserkTypePublic {
+		return "", NotImplementedError{fmt.Sprintf("%T", k), PaserkTypeToString(paserkType)}
+	}
+	header := KeyVersionToString(k.getVersion()) + "." + PaserkTypeToString(paserkType) + "."
+	data := base64.RawURLEncoding.EncodeToString(k.ExportBytes())
+	return header + data, nil
+}
+
 func ParsePaserkRaw(paserkStr string) (Key, error) {
 	frags := strings.Split(paserkStr, ".")
 	if len(frags) != 3 {

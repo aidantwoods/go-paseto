@@ -320,7 +320,7 @@ func TestPaserkV4Public(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			token, err := k.ExportPaserk(paseto.PaserkTypePublic)
+			token, err := paseto.ExportPaserkRaw(&k)
 			if test.ExpectFail {
 				require.Error(t, err)
 				return

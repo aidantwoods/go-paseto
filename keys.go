@@ -31,8 +31,6 @@ type Key interface {
 	ExportHex() string
 	// Export raw key data as byte array
 	ExportBytes() []byte
-	// Export key as paserk token of the given token type
-	ExportPaserk(PaserkType) (string, error)
 	// Returns purpose of key
 	getPurpose() keyPurpose
 	// Returns the version of the paseto tokens the key may be used for
