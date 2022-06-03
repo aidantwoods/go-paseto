@@ -161,13 +161,10 @@ func ExportPaserkRaw(k Key) (string, error) {
 	switch k.getPurpose() {
 	case keyPurposeLocal:
 		paserkType = PaserkTypeLocal
-		break
 	case keyPurposeSecret:
 		paserkType = PaserkTypeSecret
-		break
 	case keyPurposePublic:
 		paserkType = PaserkTypePublic
-		break
 	default:
 		return "", errors.New("invalid key purpose")
 	}
