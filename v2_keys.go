@@ -17,9 +17,8 @@ type V2AsymmetricPublicKey struct {
 func NewV2AsymmetricPublicKeyFromHex(hexEncoded string) (V2AsymmetricPublicKey, error) {
 	publicKey, err := hex.DecodeString(hexEncoded)
 	if err != nil {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV2AsymmetricSecretKey().Public(), err
+
+		return V2AsymmetricPublicKey{}, err
 	}
 
 	return NewV2AsymmetricPublicKeyFromBytes(publicKey)
@@ -28,9 +27,8 @@ func NewV2AsymmetricPublicKeyFromHex(hexEncoded string) (V2AsymmetricPublicKey, 
 // NewV2AsymmetricPublicKeyFromBytes Construct a v2 public key from bytes
 func NewV2AsymmetricPublicKeyFromBytes(publicKey []byte) (V2AsymmetricPublicKey, error) {
 	if len(publicKey) != 32 {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV2AsymmetricSecretKey().Public(), errors.New("Key incorrect length")
+
+		return V2AsymmetricPublicKey{}, errors.New("Key incorrect length")
 	}
 
 	return V2AsymmetricPublicKey{publicKey}, nil
@@ -95,9 +93,8 @@ func NewV2AsymmetricSecretKeyFromHex(hexEncoded string) (V2AsymmetricSecretKey, 
 	privateKey, err := hex.DecodeString(hexEncoded)
 
 	if err != nil {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV2AsymmetricSecretKey(), err
+
+		return V2AsymmetricSecretKey{}, err
 	}
 
 	return NewV2AsymmetricSecretKeyFromBytes(privateKey)
@@ -106,9 +103,8 @@ func NewV2AsymmetricSecretKeyFromHex(hexEncoded string) (V2AsymmetricSecretKey, 
 // NewV2AsymmetricSecretKeyFromBytes creates a secret key from bytes
 func NewV2AsymmetricSecretKeyFromBytes(privateKey []byte) (V2AsymmetricSecretKey, error) {
 	if len(privateKey) != 64 {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV2AsymmetricSecretKey(), errors.New("Key incorrect length")
+
+		return V2AsymmetricSecretKey{}, errors.New("Key incorrect length")
 	}
 
 	return V2AsymmetricSecretKey{privateKey}, nil
@@ -119,15 +115,13 @@ func NewV2AsymmetricSecretKeyFromSeed(hexEncoded string) (V2AsymmetricSecretKey,
 	seedBytes, err := hex.DecodeString(hexEncoded)
 
 	if err != nil {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV2AsymmetricSecretKey(), err
+
+		return V2AsymmetricSecretKey{}, err
 	}
 
 	if len(seedBytes) != 32 {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV2AsymmetricSecretKey(), errors.New("Key incorrect length")
+
+		return V2AsymmetricSecretKey{}, errors.New("Key incorrect length")
 	}
 
 	return V2AsymmetricSecretKey{ed25519.NewKeyFromSeed(seedBytes)}, nil
@@ -160,9 +154,8 @@ func (k V2SymmetricKey) ExportBytes() []byte {
 func V2SymmetricKeyFromHex(hexEncoded string) (V2SymmetricKey, error) {
 	bytes, err := hex.DecodeString(hexEncoded)
 	if err != nil {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV2SymmetricKey(), err
+
+		return V2SymmetricKey{}, err
 	}
 
 	return V2SymmetricKeyFromBytes(bytes)
@@ -171,9 +164,8 @@ func V2SymmetricKeyFromHex(hexEncoded string) (V2SymmetricKey, error) {
 // V2SymmetricKeyFromBytes constructs a key from bytes
 func V2SymmetricKeyFromBytes(bytes []byte) (V2SymmetricKey, error) {
 	if len(bytes) != 32 {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV2SymmetricKey(), errors.New("Key incorrect length")
+
+		return V2SymmetricKey{}, errors.New("Key incorrect length")
 	}
 
 	var material [32]byte
