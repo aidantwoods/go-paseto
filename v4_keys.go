@@ -19,9 +19,8 @@ func NewV4AsymmetricPublicKeyFromHex(hexEncoded string) (V4AsymmetricPublicKey, 
 	publicKey, err := hex.DecodeString(hexEncoded)
 
 	if err != nil {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV4AsymmetricSecretKey().Public(), err
+
+		return V4AsymmetricPublicKey{}, err
 	}
 
 	return NewV4AsymmetricPublicKeyFromBytes(publicKey)
@@ -30,9 +29,8 @@ func NewV4AsymmetricPublicKeyFromHex(hexEncoded string) (V4AsymmetricPublicKey, 
 // NewV4AsymmetricPublicKeyFromBytes Construct a v4 public key from bytes
 func NewV4AsymmetricPublicKeyFromBytes(publicKey []byte) (V4AsymmetricPublicKey, error) {
 	if len(publicKey) != 32 {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV4AsymmetricSecretKey().Public(), errors.New("Key incorrect length")
+
+		return V4AsymmetricPublicKey{}, errors.New("Key incorrect length")
 	}
 
 	return V4AsymmetricPublicKey{publicKey}, nil
@@ -97,9 +95,8 @@ func NewV4AsymmetricSecretKeyFromHex(hexEncoded string) (V4AsymmetricSecretKey, 
 	privateKey, err := hex.DecodeString(hexEncoded)
 
 	if err != nil {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV4AsymmetricSecretKey(), err
+
+		return V4AsymmetricSecretKey{}, err
 	}
 
 	return NewV4AsymmetricSecretKeyFromBytes(privateKey)
@@ -108,9 +105,8 @@ func NewV4AsymmetricSecretKeyFromHex(hexEncoded string) (V4AsymmetricSecretKey, 
 // NewV4AsymmetricSecretKeyFromBytes creates a secret key from bytes
 func NewV4AsymmetricSecretKeyFromBytes(privateKey []byte) (V4AsymmetricSecretKey, error) {
 	if len(privateKey) != 64 {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV4AsymmetricSecretKey(), errors.New("Key incorrect length")
+
+		return V4AsymmetricSecretKey{}, errors.New("Key incorrect length")
 	}
 
 	return V4AsymmetricSecretKey{privateKey}, nil
@@ -121,15 +117,13 @@ func NewV4AsymmetricSecretKeyFromSeed(hexEncoded string) (V4AsymmetricSecretKey,
 	seedBytes, err := hex.DecodeString(hexEncoded)
 
 	if err != nil {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV4AsymmetricSecretKey(), err
+
+		return V4AsymmetricSecretKey{}, err
 	}
 
 	if len(seedBytes) != 32 {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV4AsymmetricSecretKey(), errors.New("Key incorrect length")
+
+		return V4AsymmetricSecretKey{}, errors.New("Key incorrect length")
 	}
 
 	return V4AsymmetricSecretKey{ed25519.NewKeyFromSeed(seedBytes)}, nil
@@ -163,9 +157,8 @@ func V4SymmetricKeyFromHex(hexEncoded string) (V4SymmetricKey, error) {
 	bytes, err := hex.DecodeString(hexEncoded)
 
 	if err != nil {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV4SymmetricKey(), err
+
+		return V4SymmetricKey{}, err
 	}
 
 	return V4SymmetricKeyFromBytes(bytes)
@@ -174,9 +167,8 @@ func V4SymmetricKeyFromHex(hexEncoded string) (V4SymmetricKey, error) {
 // V4SymmetricKeyFromBytes constructs a key from bytes
 func V4SymmetricKeyFromBytes(bytes []byte) (V4SymmetricKey, error) {
 	if len(bytes) != 32 {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV4SymmetricKey(), errors.New("Key incorrect length")
+
+		return V4SymmetricKey{}, errors.New("Key incorrect length")
 	}
 
 	var material [32]byte
