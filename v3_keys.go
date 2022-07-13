@@ -24,9 +24,8 @@ func NewV3AsymmetricPublicKeyFromHex(hexEncoded string) (V3AsymmetricPublicKey, 
 	publicKeyBytes, err := hex.DecodeString(hexEncoded)
 
 	if err != nil {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV3AsymmetricSecretKey().Public(), err
+
+		return V3AsymmetricPublicKey{}, err
 	}
 
 	return NewV3AsymmetricPublicKeyFromBytes(publicKeyBytes)
@@ -35,9 +34,8 @@ func NewV3AsymmetricPublicKeyFromHex(hexEncoded string) (V3AsymmetricPublicKey, 
 // NewV3AsymmetricPublicKeyFromBytes Construct a v3 public key from bytes
 func NewV3AsymmetricPublicKeyFromBytes(publicKeyBytes []byte) (V3AsymmetricPublicKey, error) {
 	if len(publicKeyBytes) != 49 {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV3AsymmetricSecretKey().Public(), errors.New("Key incorrect length")
+
+		return V3AsymmetricPublicKey{}, errors.New("Key incorrect length")
 	}
 
 	publicKey := new(ecdsa.PublicKey)
@@ -99,9 +97,8 @@ func NewV3AsymmetricSecretKeyFromHex(hexEncoded string) (V3AsymmetricSecretKey, 
 	secretBytes, err := hex.DecodeString(hexEncoded)
 
 	if err != nil {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV3AsymmetricSecretKey(), err
+
+		return V3AsymmetricSecretKey{}, err
 	}
 
 	return NewV3AsymmetricSecretKeyFromBytes(secretBytes)
@@ -110,9 +107,8 @@ func NewV3AsymmetricSecretKeyFromHex(hexEncoded string) (V3AsymmetricSecretKey, 
 // NewV3AsymmetricSecretKeyFromBytes creates a secret key from bytes
 func NewV3AsymmetricSecretKeyFromBytes(secretBytes []byte) (V3AsymmetricSecretKey, error) {
 	if len(secretBytes) != 48 {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV3AsymmetricSecretKey(), errors.New("Key incorrect length")
+
+		return V3AsymmetricSecretKey{}, errors.New("Key incorrect length")
 	}
 
 	privateKey := new(ecdsa.PrivateKey)
@@ -154,9 +150,8 @@ func (k V3SymmetricKey) ExportBytes() []byte {
 func V3SymmetricKeyFromHex(hexEncoded string) (V3SymmetricKey, error) {
 	bytes, err := hex.DecodeString(hexEncoded)
 	if err != nil {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV3SymmetricKey(), err
+
+		return V3SymmetricKey{}, err
 	}
 
 	return V3SymmetricKeyFromBytes(bytes)
@@ -165,9 +160,8 @@ func V3SymmetricKeyFromHex(hexEncoded string) (V3SymmetricKey, error) {
 // V3SymmetricKeyFromBytes constructs a key from bytes
 func V3SymmetricKeyFromBytes(bytes []byte) (V3SymmetricKey, error) {
 	if len(bytes) != 32 {
-		// even though we return error, return a random key here rather than
-		// a nil key
-		return NewV3SymmetricKey(), errors.New("Key incorrect length")
+
+		return V3SymmetricKey{}, errors.New("Key incorrect length")
 	}
 
 	var material [32]byte
