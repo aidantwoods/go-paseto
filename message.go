@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"aidanwoods.dev/go-paseto/internal/encoding"
-	"github.com/pkg/errors"
 )
 
 // Message is a building block type, only use if you need to use Paseto
@@ -25,7 +24,7 @@ func newMessage(protocol Protocol, token string) (message, error) {
 	}
 
 	if header != protocol.Header() {
-		return message{}, errors.Errorf("Message header is not valid with the given purpose, expected %s got %s", protocol.Header(), header)
+		return message{}, errorMessageHeader(protocol, header)
 	}
 
 	payloadBytes, err := encoding.Decode(encodedPayload)
@@ -82,7 +81,7 @@ func deconstructToken(token string) (header string, encodedPayload string, encod
 
 	partsLen := len(parts)
 	if partsLen != 3 && partsLen != 4 {
-		err = errors.New("Invalid number of message parts in token")
+		err = errorMessageParts(len(parts))
 		return
 	}
 

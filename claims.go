@@ -2,7 +2,7 @@ package paseto
 
 import (
 	"crypto/subtle"
-	"errors"
+	"fmt"
 	"time"
 )
 
@@ -21,10 +21,7 @@ func ForAudience(audience string) Rule {
 		}
 
 		if subtle.ConstantTimeCompare([]byte(tAud), []byte(audience)) == 0 {
-			return errors.New(
-				"this token is not intended for `" +
-					audience + "`. `" + tAud + "` found",
-			)
+			return fmt.Errorf("this token is not intended for `%s'. `%s' found", audience, tAud)
 		}
 
 		return nil
@@ -41,10 +38,7 @@ func IdentifiedBy(identifier string) Rule {
 		}
 
 		if subtle.ConstantTimeCompare([]byte(tJti), []byte(identifier)) == 0 {
-			return errors.New(
-				"this token is not identified by `" +
-					identifier + "`. `" + tJti + "` found",
-			)
+			return fmt.Errorf("this token is not identified by `%s'. `%s' found", identifier, tJti)
 		}
 
 		return nil
@@ -63,10 +57,7 @@ func IssuedBy(issuer string) Rule {
 		issBytes := []byte(issuer)
 
 		if subtle.ConstantTimeCompare(tIssBytes, issBytes) == 0 {
-			return errors.New(
-				"this token is not issued by `" +
-					issuer + "`. `" + tIss + "` found",
-			)
+			return fmt.Errorf("this token is not issued by `%s'. `%s' found", issuer, tIss)
 		}
 
 		return nil
@@ -85,7 +76,7 @@ func NotExpired() Rule {
 		}
 
 		if time.Now().After(exp) {
-			return errors.New("this token has expired")
+			return fmt.Errorf("this token has expired")
 		}
 
 		return nil
@@ -101,10 +92,7 @@ func Subject(subject string) Rule {
 		}
 
 		if subtle.ConstantTimeCompare([]byte(tSub), []byte(subject)) == 0 {
-			return errors.New(
-				"this token is not related to `" +
-					subject + "`. `" + tSub + "` found",
-			)
+			return fmt.Errorf("this token is not related to `%s'. `%s' found", subject, tSub)
 		}
 
 		return nil
@@ -121,7 +109,7 @@ func ValidAt(t time.Time) Rule {
 			return err
 		}
 		if t.Before(iat) {
-			return errors.New("the ValidAt time is before this token was issued")
+			return fmt.Errorf("the ValidAt time is before this token was issued")
 		}
 
 		nbf, err := token.GetNotBefore()
@@ -129,7 +117,7 @@ func ValidAt(t time.Time) Rule {
 			return err
 		}
 		if t.Before(nbf) {
-			return errors.New("the ValidAt time is before this token's not before time")
+			return fmt.Errorf("the ValidAt time is before this token's not before time")
 		}
 
 		exp, err := token.GetExpiration()
@@ -137,7 +125,7 @@ func ValidAt(t time.Time) Rule {
 			return err
 		}
 		if t.After(exp) {
-			return errors.New("the ValidAt time is after this token expires")
+			return fmt.Errorf("the ValidAt time is after this token expires")
 		}
 
 		return nil

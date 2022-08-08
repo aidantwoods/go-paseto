@@ -7,7 +7,6 @@ import (
 	"aidanwoods.dev/go-paseto/internal/encoding"
 	"aidanwoods.dev/go-paseto/internal/hashing"
 	"aidanwoods.dev/go-paseto/internal/random"
-	"github.com/pkg/errors"
 	"golang.org/x/crypto/chacha20"
 )
 
@@ -31,7 +30,7 @@ func v4PublicSign(packet packet, key V4AsymmetricSecretKey, implicit []byte) mes
 func v4PublicVerify(msg message, key V4AsymmetricPublicKey, implicit []byte) (packet, error) {
 	payload, ok := msg.p.(v4PublicPayload)
 	if msg.header() != V4Public.Header() || !ok {
-		return packet{}, errors.Errorf("Cannot decrypt message with header: %s", msg.header())
+		return packet{}, errorMessageHeaderVerify(V4Public, msg.header())
 	}
 
 	header, footer := []byte(msg.header()), msg.footer
@@ -40,7 +39,7 @@ func v4PublicVerify(msg message, key V4AsymmetricPublicKey, implicit []byte) (pa
 	m2 := encoding.Pae(header, data, footer, implicit)
 
 	if !ed25519.Verify(key.material, m2, payload.signature[:]) {
-		return packet{}, errors.Errorf("Bad signature")
+		return packet{}, errorBadSignature
 	}
 
 	return packet{data, footer}, nil
@@ -73,7 +72,7 @@ func v4LocalEncrypt(p packet, key V4SymmetricKey, implicit []byte, unitTestNonce
 func v4LocalDecrypt(msg message, key V4SymmetricKey, implicit []byte) (packet, error) {
 	payload, ok := msg.p.(v4LocalPayload)
 	if msg.header() != V4Local.Header() || !ok {
-		return packet{}, errors.Errorf("Cannot decrypt message with header: %s", msg.header())
+		return packet{}, errorMessageHeaderDecrypt(V4Local, msg.header())
 	}
 
 	nonce, cipherText, givenTag := payload.nonce, payload.cipherText, payload.tag
@@ -87,7 +86,7 @@ func v4LocalDecrypt(msg message, key V4SymmetricKey, implicit []byte) (packet, e
 	hashing.GenericHash(preAuth, expectedTag[:], authKey[:])
 
 	if !hmac.Equal(expectedTag[:], givenTag[:]) {
-		return packet{}, errors.Errorf("Bad message authentication code")
+		return packet{}, errorBadMAC
 	}
 
 	cipher, err := chacha20.NewUnauthenticatedCipher(encKey[:], nonce2[:])

@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 
 	"aidanwoods.dev/go-paseto/internal/random"
-	"github.com/pkg/errors"
 )
 
 // V2AsymmetricPublicKey V2 public public key
@@ -30,7 +29,7 @@ func NewV2AsymmetricPublicKeyFromBytes(publicKey []byte) (V2AsymmetricPublicKey,
 	if len(publicKey) != 32 {
 		// even though we return error, return a random key here rather than
 		// a nil key
-		return NewV2AsymmetricSecretKey().Public(), errors.New("Key incorrect length")
+		return NewV2AsymmetricSecretKey().Public(), errorKeyLength(32, len(publicKey))
 	}
 
 	return V2AsymmetricPublicKey{publicKey}, nil
@@ -108,7 +107,7 @@ func NewV2AsymmetricSecretKeyFromBytes(privateKey []byte) (V2AsymmetricSecretKey
 	if len(privateKey) != 64 {
 		// even though we return error, return a random key here rather than
 		// a nil key
-		return NewV2AsymmetricSecretKey(), errors.New("Key incorrect length")
+		return NewV2AsymmetricSecretKey(), errorKeyLength(64, len(privateKey))
 	}
 
 	return V2AsymmetricSecretKey{privateKey}, nil
@@ -127,7 +126,7 @@ func NewV2AsymmetricSecretKeyFromSeed(hexEncoded string) (V2AsymmetricSecretKey,
 	if len(seedBytes) != 32 {
 		// even though we return error, return a random key here rather than
 		// a nil key
-		return NewV2AsymmetricSecretKey(), errors.New("Key incorrect length")
+		return NewV2AsymmetricSecretKey(), errorSeedLength(32, len(seedBytes))
 	}
 
 	return V2AsymmetricSecretKey{ed25519.NewKeyFromSeed(seedBytes)}, nil
@@ -173,7 +172,7 @@ func V2SymmetricKeyFromBytes(bytes []byte) (V2SymmetricKey, error) {
 	if len(bytes) != 32 {
 		// even though we return error, return a random key here rather than
 		// a nil key
-		return NewV2SymmetricKey(), errors.New("Key incorrect length")
+		return NewV2SymmetricKey(), errorKeyLength(32, len(bytes))
 	}
 
 	var material [32]byte

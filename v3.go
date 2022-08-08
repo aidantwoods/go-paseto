@@ -11,7 +11,6 @@ import (
 
 	"aidanwoods.dev/go-paseto/internal/encoding"
 	"aidanwoods.dev/go-paseto/internal/random"
-	"github.com/pkg/errors"
 )
 
 func v3PublicSign(packet packet, key V3AsymmetricSecretKey, implicit []byte) message {
@@ -48,7 +47,7 @@ func v3PublicSign(packet packet, key V3AsymmetricSecretKey, implicit []byte) mes
 func v3PublicVerify(msg message, key V3AsymmetricPublicKey, implicit []byte) (packet, error) {
 	payload, ok := msg.p.(v3PublicPayload)
 	if msg.header() != V3Public.Header() || !ok {
-		return packet{}, errors.Errorf("Cannot decrypt message with header: %s", msg.header())
+		return packet{}, errorMessageHeaderVerify(V3Public, msg.header())
 	}
 
 	header, footer := []byte(msg.header()), msg.footer
@@ -62,7 +61,7 @@ func v3PublicVerify(msg message, key V3AsymmetricPublicKey, implicit []byte) (pa
 	s := new(big.Int).SetBytes(payload.signature[48:])
 
 	if !ecdsa.Verify(&key.material, hash[:], r, s) {
-		return packet{}, errors.Errorf("Bad signature")
+		return packet{}, errorBadSignature
 	}
 
 	return packet{data, footer}, nil
@@ -99,7 +98,7 @@ func v3LocalEncrypt(p packet, key V3SymmetricKey, implicit []byte, unitTestNonce
 func v3LocalDecrypt(msg message, key V3SymmetricKey, implicit []byte) (packet, error) {
 	payload, ok := msg.p.(v3LocalPayload)
 	if msg.header() != V3Local.Header() || !ok {
-		return packet{}, errors.Errorf("Cannot decrypt message with header: %s", msg.header())
+		return packet{}, errorMessageHeaderDecrypt(V3Local, msg.header())
 	}
 
 	nonce, cipherText, givenTag := payload.nonce, payload.cipherText, payload.tag
@@ -118,7 +117,7 @@ func v3LocalDecrypt(msg message, key V3SymmetricKey, implicit []byte) (packet, e
 
 	if !hmac.Equal(expectedTag[:], givenTag[:]) {
 		var p packet
-		return p, errors.Errorf("Bad message authentication code")
+		return p, errorBadMAC
 	}
 
 	blockCipher, err := aes.NewCipher(encKey[:])

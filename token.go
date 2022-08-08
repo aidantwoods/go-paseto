@@ -2,9 +2,8 @@ package paseto
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // Token is a set of paseto claims, and a footer
@@ -50,7 +49,7 @@ func NewTokenFromClaimsJSON(claimsData []byte, footer []byte) (*Token, error) {
 func (t *Token) Set(key string, value interface{}) error {
 	v, err := newTokenValue(value)
 	if err != nil {
-		return errors.Wrapf(err, "could not set key `%s`", key)
+		return fmt.Errorf("could not set key `%s': %w", key, err)
 	}
 
 	t.claims[key] = *v
@@ -63,7 +62,7 @@ func (t *Token) Set(key string, value interface{}) error {
 func (t Token) Get(key string, output interface{}) (err error) {
 	v, ok := t.claims[key]
 	if !ok {
-		return errors.Errorf("value for key `%s' not present in claims", key)
+		return fmt.Errorf("value for key `%s' not present in claims", key)
 	}
 
 	if err := json.Unmarshal(v.rawValue, &output); err != nil {

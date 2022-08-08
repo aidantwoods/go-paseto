@@ -6,7 +6,6 @@ import (
 	"aidanwoods.dev/go-paseto/internal/encoding"
 	"aidanwoods.dev/go-paseto/internal/hashing"
 	"aidanwoods.dev/go-paseto/internal/random"
-	"github.com/pkg/errors"
 	"golang.org/x/crypto/chacha20poly1305"
 )
 
@@ -31,7 +30,7 @@ func v2PublicSign(packet packet, key V2AsymmetricSecretKey) message {
 func v2PublicVerify(msg message, key V2AsymmetricPublicKey) (packet, error) {
 	payload, ok := msg.p.(v2PublicPayload)
 	if msg.header() != V2Public.Header() || !ok {
-		return packet{}, errors.Errorf("Cannot decrypt message with header: %s", msg.header())
+		return packet{}, errorMessageHeaderVerify(V2Public, msg.header())
 	}
 
 	header, footer := []byte(msg.header()), msg.footer
@@ -40,7 +39,7 @@ func v2PublicVerify(msg message, key V2AsymmetricPublicKey) (packet, error) {
 	m2 := encoding.Pae(header, data, footer)
 
 	if !ed25519.Verify(key.material, m2, payload.signature[:]) {
-		return packet{}, errors.Errorf("Bad signature")
+		return packet{}, errorBadSignature
 	}
 
 	return packet{data, footer}, nil
@@ -70,7 +69,7 @@ func v2LocalEncrypt(p packet, key V2SymmetricKey, unitTestNonce []byte) message 
 func v2LocalDecrypt(msg message, key V2SymmetricKey) (packet, error) {
 	payload, ok := msg.p.(v2LocalPayload)
 	if msg.header() != V2Local.Header() || !ok {
-		return packet{}, errors.Errorf("Cannot decrypt message with header: %s", msg.header())
+		return packet{}, errorMessageHeaderDecrypt(V2Local, msg.header())
 	}
 
 	nonce, cipherText := payload.nonce, payload.cipherText
@@ -86,7 +85,7 @@ func v2LocalDecrypt(msg message, key V2SymmetricKey) (packet, error) {
 
 	plainText, err := cipher.Open(nil, nonce[:], cipherText, preAuth)
 	if err != nil {
-		return packet{}, errors.Errorf("The message could not be decrypted. %s", err)
+		return packet{}, errorDecrypt(err)
 	}
 
 	return packet{plainText, msg.footer}, nil

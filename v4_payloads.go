@@ -1,9 +1,5 @@
 package paseto
 
-import (
-	"github.com/pkg/errors"
-)
-
 type v4PublicPayload struct {
 	message   []byte
 	signature [64]byte
@@ -17,7 +13,7 @@ func newV4PublicPayload(bytes []byte) (v4PublicPayload, error) {
 	signatureOffset := len(bytes) - 64
 
 	if signatureOffset < 0 {
-		return v4PublicPayload{}, errors.New("Payload is not long enough to be a valid Paseto message")
+		return v4PublicPayload{}, errorPayloadShort
 	}
 
 	message := make([]byte, len(bytes)-64)
@@ -41,7 +37,7 @@ func (p v4LocalPayload) bytes() []byte {
 
 func newV4LocalPayload(bytes []byte) (v4LocalPayload, error) {
 	if len(bytes) <= 32+32 {
-		return v4LocalPayload{}, errors.New("Payload is not long enough to be a valid Paseto message")
+		return v4LocalPayload{}, errorPayloadShort
 	}
 
 	macOffset := len(bytes) - 32

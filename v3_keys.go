@@ -10,7 +10,6 @@ import (
 	"math/big"
 
 	"aidanwoods.dev/go-paseto/internal/random"
-	"github.com/pkg/errors"
 	"golang.org/x/crypto/hkdf"
 )
 
@@ -37,7 +36,7 @@ func NewV3AsymmetricPublicKeyFromBytes(publicKeyBytes []byte) (V3AsymmetricPubli
 	if len(publicKeyBytes) != 49 {
 		// even though we return error, return a random key here rather than
 		// a nil key
-		return NewV3AsymmetricSecretKey().Public(), errors.New("Key incorrect length")
+		return NewV3AsymmetricSecretKey().Public(), errorKeyLength(49, len(publicKeyBytes))
 	}
 
 	publicKey := new(ecdsa.PublicKey)
@@ -112,7 +111,7 @@ func NewV3AsymmetricSecretKeyFromBytes(secretBytes []byte) (V3AsymmetricSecretKe
 	if len(secretBytes) != 48 {
 		// even though we return error, return a random key here rather than
 		// a nil key
-		return NewV3AsymmetricSecretKey(), errors.New("Key incorrect length")
+		return NewV3AsymmetricSecretKey(), errorKeyLength(48, len(secretBytes))
 	}
 
 	privateKey := new(ecdsa.PrivateKey)
@@ -167,7 +166,7 @@ func V3SymmetricKeyFromBytes(bytes []byte) (V3SymmetricKey, error) {
 	if len(bytes) != 32 {
 		// even though we return error, return a random key here rather than
 		// a nil key
-		return NewV3SymmetricKey(), errors.New("Key incorrect length")
+		return NewV3SymmetricKey(), errorKeyLength(32, len(bytes))
 	}
 
 	var material [32]byte

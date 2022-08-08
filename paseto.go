@@ -1,7 +1,6 @@
 package paseto
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -53,11 +52,11 @@ type Protocol struct {
 func NewProtocol(version Version, purpose Purpose) (Protocol, error) {
 	switch version {
 	default:
-		return Protocol{}, errors.New("Unsupported PASETO version")
+		return Protocol{}, unsupportedPasetoVersion
 	case Version2:
 		switch purpose {
 		default:
-			return Protocol{}, errors.New("Unsupported PASETO purpose")
+			return Protocol{}, unsupportedPasetoPurpose
 		case Local:
 			return V2Local, nil
 		case Public:
@@ -66,7 +65,7 @@ func NewProtocol(version Version, purpose Purpose) (Protocol, error) {
 	case Version3:
 		switch purpose {
 		default:
-			return Protocol{}, errors.New("Unsupported PASETO purpose")
+			return Protocol{}, unsupportedPasetoPurpose
 		case Local:
 			return V3Local, nil
 		case Public:
@@ -75,7 +74,7 @@ func NewProtocol(version Version, purpose Purpose) (Protocol, error) {
 	case Version4:
 		switch purpose {
 		default:
-			return Protocol{}, errors.New("Unsupported PASETO purpose")
+			return Protocol{}, unsupportedPasetoPurpose
 		case Local:
 			return V4Local, nil
 		case Public:
@@ -102,11 +101,11 @@ func (p Protocol) Purpose() Purpose {
 func (p Protocol) newPayload(bytes []byte) (payload, error) {
 	switch p.version {
 	default:
-		return nil, errors.New("Unsupported PASETO version")
+		return nil, unsupportedPasetoVersion
 	case Version2:
 		switch p.purpose {
 		default:
-			return nil, errors.New("Unsupported PASETO purpose")
+			return nil, unsupportedPasetoPurpose
 		case Local:
 			return newV2LocalPayload(bytes)
 		case Public:
@@ -115,7 +114,7 @@ func (p Protocol) newPayload(bytes []byte) (payload, error) {
 	case Version3:
 		switch p.purpose {
 		default:
-			return nil, errors.New("Unsupported PASETO purpose")
+			return nil, unsupportedPasetoPurpose
 		case Local:
 			return newV3LocalPayload(bytes)
 		case Public:
@@ -124,7 +123,7 @@ func (p Protocol) newPayload(bytes []byte) (payload, error) {
 	case Version4:
 		switch p.purpose {
 		default:
-			return nil, errors.New("Unsupported PASETO purpose")
+			return nil, unsupportedPasetoPurpose
 		case Local:
 			return newV4LocalPayload(bytes)
 		case Public:
@@ -140,7 +139,7 @@ type payload interface {
 func protocolForPayload(payload payload) (Protocol, error) {
 	switch payload.(type) {
 	default:
-		return Protocol{}, errors.New("Unsupported Payload")
+		return Protocol{}, unsupportedPayload
 	case v2LocalPayload:
 		return V2Local, nil
 	case v2PublicPayload:
