@@ -84,7 +84,7 @@ func NotBeforeNbf() Rule {
 }
 
 // NotExpired requires that the token has not expired according to the time
-// when this rule is created and the "exp" field of a token. Beware that this
+// when this rule is checked and the "exp" field of a token. Beware that this
 // rule does not validate the token's "iat" or "nbf" fields, or even require
 // their presence.
 func NotExpired() Rule {
