@@ -64,6 +64,25 @@ func IssuedBy(issuer string) Rule {
 	}
 }
 
+// NotBeforeNbf requires that the token is allowed to be used according to the time
+// when this rule is checked and the "nbf" field of a token. Beware that this
+// rule does not validate the token's "iat" or "exp" fields, or even require
+// their presence.
+func NotBeforeNbf() Rule {
+	return func(token Token) error {
+		nbf, err := token.GetNotBefore()
+		if err != nil {
+			return err
+		}
+
+		if time.Now().Before(nbf) {
+			return fmt.Errorf("this token is not valid, yet")
+		}
+
+		return nil
+	}
+}
+
 // NotExpired requires that the token has not expired according to the time
 // when this rule is created and the "exp" field of a token. Beware that this
 // rule does not validate the token's "iat" or "nbf" fields, or even require

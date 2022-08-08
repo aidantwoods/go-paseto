@@ -148,6 +148,44 @@ func TestFutureNbf(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestFutureNbfNotBeforeNbfRule(t *testing.T) {
+	token := paseto.NewToken()
+
+	// simulated check will be 30 seconds from now
+	token.SetExpiration(time.Now().Add(time.Minute))
+	token.SetNotBefore(time.Now())
+	token.SetIssuedAt(time.Now().Add(-2 * time.Second))
+
+	key := paseto.NewV4SymmetricKey()
+
+	encrypted := token.V4Encrypt(key, nil)
+
+	parser := paseto.NewParser()
+	parser.AddRule(paseto.NotBeforeNbf())
+
+	_, err := parser.ParseV4Local(key, encrypted, nil)
+	require.NoError(t, err)
+}
+
+func TestFutureNbfNotBeforeNbfRuleError(t *testing.T) {
+	token := paseto.NewToken()
+
+	// simulated check will be 30 seconds from now
+	token.SetExpiration(time.Now().Add(time.Minute))
+	token.SetNotBefore(time.Now().Add(35 * time.Second))
+	token.SetIssuedAt(time.Now())
+
+	key := paseto.NewV4SymmetricKey()
+
+	encrypted := token.V4Encrypt(key, nil)
+
+	parser := paseto.NewParser()
+	parser.AddRule(paseto.NotBeforeNbf())
+
+	_, err := parser.ParseV4Local(key, encrypted, nil)
+	require.Error(t, err)
+}
+
 func TestPastExp(t *testing.T) {
 	token := paseto.NewToken()
 
