@@ -104,12 +104,29 @@ func NewV4AsymmetricSecretKeyFromHex(hexEncoded string) (V4AsymmetricSecretKey, 
 	return NewV4AsymmetricSecretKeyFromBytes(privateKey)
 }
 
+func isEd25519KeyPairMalformed(privateKey []byte) bool {
+	seed := privateKey[:32]
+
+	pubKeyFromGiven := ed25519.PrivateKey(privateKey).Public().(ed25519.PublicKey)
+	pubKeyFromSeed := ed25519.NewKeyFromSeed(seed).Public().(ed25519.PublicKey)
+
+	return !pubKeyFromGiven.Equal(pubKeyFromSeed)
+}
+
 // NewV4AsymmetricSecretKeyFromBytes creates a secret key from bytes
 func NewV4AsymmetricSecretKeyFromBytes(privateKey []byte) (V4AsymmetricSecretKey, error) {
 	if len(privateKey) != 64 {
 		// even though we return error, return a random key here rather than
 		// a nil key
 		return NewV4AsymmetricSecretKey(), errorKeyLength(64, len(privateKey))
+	}
+
+	if isEd25519KeyPairMalformed(privateKey) {
+		// even though we return error, return a random key here rather than
+		// a nil key
+		// This should catch poorly formed private keys (ones that do not embed
+		// a public key which corresponds to their private portion)
+		return NewV4AsymmetricSecretKey(), errorKeyInvalid
 	}
 
 	return V4AsymmetricSecretKey{privateKey}, nil

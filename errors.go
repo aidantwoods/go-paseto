@@ -34,6 +34,8 @@ var errorPayloadShort = fmt.Errorf("payload is not long enough to be a valid PAS
 var errorBadSignature = fmt.Errorf("bad signature")
 var errorBadMAC = fmt.Errorf("bad message authentication code")
 
+var errorKeyInvalid = fmt.Errorf("key was not valid")
+
 func errorDecrypt(err error) error {
 	return fmt.Errorf("the message could not be decrypted: %w", err)
 }
