@@ -110,6 +110,14 @@ func NewV2AsymmetricSecretKeyFromBytes(privateKey []byte) (V2AsymmetricSecretKey
 		return NewV2AsymmetricSecretKey(), errorKeyLength(64, len(privateKey))
 	}
 
+	if isEd25519KeyPairMalformed(privateKey) {
+		// even though we return error, return a random key here rather than
+		// a nil key
+		// This should catch poorly formed private keys (ones that do not embed
+		// a public key which corresponds to their private portion)
+		return NewV2AsymmetricSecretKey(), errorKeyInvalid
+	}
+
 	return V2AsymmetricSecretKey{privateKey}, nil
 }
 
