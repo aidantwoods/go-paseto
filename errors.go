@@ -2,6 +2,51 @@ package paseto
 
 import "fmt"
 
+// Any cryptography issue (with the token) or formatting error.
+// This does not include cryptography errors with input key material, these will
+// return regular errors.
+type TokenError struct {
+	e error
+}
+
+func (e *TokenError) Error() string {
+	return e.e.Error()
+}
+
+func (_ *TokenError) Is(e error) bool {
+	_, ok := e.(*TokenError)
+	return ok
+}
+
+func (e *TokenError) Unwrap() error {
+	return e.e
+}
+
+func (e *TokenError) wrapWith(msg string) *TokenError {
+	return &TokenError{fmt.Errorf("%s: %w", msg, e)}
+}
+
+// Any error which is the result of a rule failure (distinct from a TokenError)
+// Can be used to detect cryptographically valid tokens which have failed only
+// due to a rule failure: which may warrant a slightly different processing
+// follow up.
+type RuleError struct {
+	e error
+}
+
+func (e *RuleError) Error() string {
+	return e.e.Error()
+}
+
+func (_ *RuleError) Is(e error) bool {
+	_, ok := e.(*RuleError)
+	return ok
+}
+
+func (e *RuleError) Unwrap() error {
+	return e.e
+}
+
 func errorKeyLength(expected, given int) error {
 	return fmt.Errorf("key length incorrect (%d), expected %d", given, expected)
 }
