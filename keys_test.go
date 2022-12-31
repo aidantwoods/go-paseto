@@ -12,6 +12,8 @@ func TestV2AsymmetricSecretKeyImport(t *testing.T) {
 
 	_, err := paseto.NewV2AsymmetricSecretKeyFromHex(badKey)
 	require.Error(t, err)
+	require.NotErrorIs(t, err, &paseto.RuleError{})
+	require.NotErrorIs(t, err, &paseto.TokenError{})
 
 	goodKey := "b4cbfb43df4ce210727d953e4a713307fa19bb7d9f85041438d9e11b942a37741eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2"
 
@@ -24,6 +26,8 @@ func TestV4AsymmetricSecretKeyImport(t *testing.T) {
 
 	_, err := paseto.NewV4AsymmetricSecretKeyFromHex(badKey)
 	require.Error(t, err)
+	require.NotErrorIs(t, err, &paseto.RuleError{})
+	require.NotErrorIs(t, err, &paseto.TokenError{})
 
 	goodKey := "b4cbfb43df4ce210727d953e4a713307fa19bb7d9f85041438d9e11b942a37741eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2"
 
