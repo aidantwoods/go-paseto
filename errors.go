@@ -55,32 +55,32 @@ func errorSeedLength(expected, given int) error {
 	return fmt.Errorf("seed length incorrect (%d), expected %d", given, expected)
 }
 
-func errorMessageParts(given int) error {
-	return fmt.Errorf("invalid number of message parts in token (%d)", given)
+func errorMessageParts(given int) *TokenError {
+	return &TokenError{fmt.Errorf("invalid number of message parts in token (%d)", given)}
 }
 
-func errorMessageHeader(expected Protocol, givenHeader string) error {
-	return fmt.Errorf("message header `%s' is not valid, expected `%s'", givenHeader, expected.Header())
+func errorMessageHeader(expected Protocol, givenHeader string) *TokenError {
+	return &TokenError{fmt.Errorf("message header `%s' is not valid, expected `%s'", givenHeader, expected.Header())}
 }
 
-func errorMessageHeaderDecrypt(expected Protocol, givenHeader string) error {
-	return fmt.Errorf("cannot decrypt message: %w", errorMessageHeader(expected, givenHeader))
+func errorMessageHeaderDecrypt(expected Protocol, givenHeader string) *TokenError {
+	return errorMessageHeader(expected, givenHeader).wrapWith("cannot decrypt message")
 }
 
-func errorMessageHeaderVerify(expected Protocol, givenHeader string) error {
-	return fmt.Errorf("cannot verify message: %w", errorMessageHeader(expected, givenHeader))
+func errorMessageHeaderVerify(expected Protocol, givenHeader string) *TokenError {
+	return errorMessageHeader(expected, givenHeader).wrapWith("cannot verify message")
 }
 
 var unsupportedPasetoVersion = fmt.Errorf("unsupported PASETO version")
 var unsupportedPasetoPurpose = fmt.Errorf("unsupported PASETO purpose")
 var unsupportedPayload = fmt.Errorf("unsupported payload")
 
-var errorPayloadShort = fmt.Errorf("payload is not long enough to be a valid PASETO message")
-var errorBadSignature = fmt.Errorf("bad signature")
-var errorBadMAC = fmt.Errorf("bad message authentication code")
+var errorPayloadShort = &TokenError{fmt.Errorf("payload is not long enough to be a valid PASETO message")}
+var errorBadSignature = &TokenError{fmt.Errorf("bad signature")}
+var errorBadMAC = &TokenError{fmt.Errorf("bad message authentication code")}
 
 var errorKeyInvalid = fmt.Errorf("key was not valid")
 
-func errorDecrypt(err error) error {
-	return fmt.Errorf("the message could not be decrypted: %w", err)
+func errorDecrypt(err error) *TokenError {
+	return (&TokenError{err}).wrapWith("the message could not be decrypted")
 }
