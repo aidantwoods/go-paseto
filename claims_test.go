@@ -127,6 +127,8 @@ func TestFutureIat(t *testing.T) {
 
 	_, err := parser.ParseV4Local(key, encrypted, nil)
 	require.Error(t, err)
+	require.ErrorIs(t, err, &paseto.RuleError{})
+	require.NotErrorIs(t, err, &paseto.TokenError{})
 }
 
 func TestFutureNbf(t *testing.T) {
@@ -146,6 +148,8 @@ func TestFutureNbf(t *testing.T) {
 
 	_, err := parser.ParseV4Local(key, encrypted, nil)
 	require.Error(t, err)
+	require.ErrorIs(t, err, &paseto.RuleError{})
+	require.NotErrorIs(t, err, &paseto.TokenError{})
 }
 
 func TestFutureNbfNotBeforeNbfRule(t *testing.T) {
@@ -184,6 +188,8 @@ func TestFutureNbfNotBeforeNbfRuleError(t *testing.T) {
 
 	_, err := parser.ParseV4Local(key, encrypted, nil)
 	require.Error(t, err)
+	require.ErrorIs(t, err, &paseto.RuleError{})
+	require.NotErrorIs(t, err, &paseto.TokenError{})
 }
 
 func TestPastExp(t *testing.T) {
@@ -203,6 +209,8 @@ func TestPastExp(t *testing.T) {
 
 	_, err := parser.ParseV4Local(key, encrypted, nil)
 	require.Error(t, err)
+	require.ErrorIs(t, err, &paseto.RuleError{})
+	require.NotErrorIs(t, err, &paseto.TokenError{})
 }
 
 func TestReadMeExample(t *testing.T) {

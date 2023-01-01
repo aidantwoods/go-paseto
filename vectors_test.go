@@ -50,6 +50,8 @@ func TestV2(t *testing.T) {
 				message, err := paseto.NewMessage(paseto.V2Local, test.Token)
 				if test.ExpectFail {
 					require.Error(t, err)
+					require.ErrorIs(t, err, &paseto.TokenError{})
+					require.NotErrorIs(t, err, &paseto.RuleError{})
 					return
 				}
 				require.NoError(t, err)
@@ -57,6 +59,8 @@ func TestV2(t *testing.T) {
 				decoded, err = paseto.V2LocalDecrypt(message, sk)
 				if test.ExpectFail {
 					require.Error(t, err)
+					require.ErrorIs(t, err, &paseto.TokenError{})
+					require.NotErrorIs(t, err, &paseto.RuleError{})
 					return
 				}
 				require.NoError(t, err)
@@ -69,6 +73,8 @@ func TestV2(t *testing.T) {
 				message, err := paseto.NewMessage(paseto.V2Public, test.Token)
 				if test.ExpectFail {
 					require.Error(t, err)
+					require.ErrorIs(t, err, &paseto.TokenError{})
+					require.NotErrorIs(t, err, &paseto.RuleError{})
 					return
 				}
 				require.NoError(t, err)
@@ -76,6 +82,8 @@ func TestV2(t *testing.T) {
 				decoded, err = paseto.V2PublicVerify(message, pk)
 				if test.ExpectFail {
 					require.Error(t, err)
+					require.ErrorIs(t, err, &paseto.TokenError{})
+					require.NotErrorIs(t, err, &paseto.RuleError{})
 					return
 				}
 				require.NoError(t, err)
@@ -135,6 +143,8 @@ func TestV3(t *testing.T) {
 				message, err := paseto.NewMessage(paseto.V3Local, test.Token)
 				if test.ExpectFail {
 					require.Error(t, err)
+					require.ErrorIs(t, err, &paseto.TokenError{})
+					require.NotErrorIs(t, err, &paseto.RuleError{})
 					return
 				}
 				require.NoError(t, err)
@@ -142,6 +152,8 @@ func TestV3(t *testing.T) {
 				decoded, err = paseto.V3LocalDecrypt(message, sk, []byte(test.ImplicitAssertation))
 				if test.ExpectFail {
 					require.Error(t, err)
+					require.ErrorIs(t, err, &paseto.TokenError{})
+					require.NotErrorIs(t, err, &paseto.RuleError{})
 					return
 				}
 				require.NoError(t, err)
@@ -154,6 +166,8 @@ func TestV3(t *testing.T) {
 				message, err := paseto.NewMessage(paseto.V3Public, test.Token)
 				if test.ExpectFail {
 					require.Error(t, err)
+					require.ErrorIs(t, err, &paseto.TokenError{})
+					require.NotErrorIs(t, err, &paseto.RuleError{})
 					return
 				}
 				require.NoError(t, err)
@@ -161,6 +175,8 @@ func TestV3(t *testing.T) {
 				decoded, err = paseto.V3PublicVerify(message, pk, []byte(test.ImplicitAssertation))
 				if test.ExpectFail {
 					require.Error(t, err)
+					require.ErrorIs(t, err, &paseto.TokenError{})
+					require.NotErrorIs(t, err, &paseto.RuleError{})
 					return
 				}
 				require.NoError(t, err)
@@ -235,6 +251,8 @@ func TestV4(t *testing.T) {
 				message, err := paseto.NewMessage(paseto.V4Local, test.Token)
 				if test.ExpectFail {
 					require.Error(t, err)
+					require.ErrorIs(t, err, &paseto.TokenError{})
+					require.NotErrorIs(t, err, &paseto.RuleError{})
 					return
 				}
 				require.NoError(t, err)
@@ -242,6 +260,8 @@ func TestV4(t *testing.T) {
 				decoded, err = paseto.V4LocalDecrypt(message, sk, []byte(test.ImplicitAssertation))
 				if test.ExpectFail {
 					require.Error(t, err)
+					require.ErrorIs(t, err, &paseto.TokenError{})
+					require.NotErrorIs(t, err, &paseto.RuleError{})
 					return
 				}
 				require.NoError(t, err)
@@ -254,6 +274,8 @@ func TestV4(t *testing.T) {
 				message, err := paseto.NewMessage(paseto.V4Public, test.Token)
 				if test.ExpectFail {
 					require.Error(t, err)
+					require.ErrorIs(t, err, &paseto.TokenError{})
+					require.NotErrorIs(t, err, &paseto.RuleError{})
 					return
 				}
 				require.NoError(t, err)
@@ -261,6 +283,8 @@ func TestV4(t *testing.T) {
 				decoded, err = paseto.V4PublicVerify(message, pk, []byte(test.ImplicitAssertation))
 				if test.ExpectFail {
 					require.Error(t, err)
+					require.ErrorIs(t, err, &paseto.TokenError{})
+					require.NotErrorIs(t, err, &paseto.RuleError{})
 					return
 				}
 				require.NoError(t, err)

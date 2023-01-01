@@ -152,7 +152,7 @@ func (p *Parser) AddRule(rule ...Rule) {
 func (p Parser) validate(token Token) (*Token, error) {
 	for _, rule := range p.rules {
 		if err := rule(token); err != nil {
-			return nil, err
+			return nil, &RuleError{err}
 		}
 	}
 

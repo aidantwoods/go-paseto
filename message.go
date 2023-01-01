@@ -29,12 +29,12 @@ func newMessage(protocol Protocol, token string) (message, error) {
 
 	payloadBytes, err := encoding.Decode(encodedPayload)
 	if err != nil {
-		return message{}, err
+		return message{}, &TokenError{err}
 	}
 
 	footer, err := encoding.Decode(encodedFooter)
 	if err != nil {
-		return message{}, err
+		return message{}, &TokenError{err}
 	}
 
 	payload, err := protocol.newPayload(payloadBytes)

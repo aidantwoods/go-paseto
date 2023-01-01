@@ -29,6 +29,8 @@ func TestSomeInt(t *testing.T) {
 	var output string
 	err = token.Get("foo", &output)
 	require.Error(t, err)
+	require.NotErrorIs(t, err, &paseto.RuleError{})
+	require.NotErrorIs(t, err, &paseto.TokenError{})
 
 	var intOutput int
 	err = token.Get("foo", &intOutput)
@@ -46,6 +48,8 @@ func TestSomeBool(t *testing.T) {
 	var intOutput int
 	err = token.Get("foo", &intOutput)
 	require.Error(t, err)
+	require.NotErrorIs(t, err, &paseto.RuleError{})
+	require.NotErrorIs(t, err, &paseto.TokenError{})
 
 	var output bool
 	err = token.Get("foo", &output)
@@ -92,6 +96,8 @@ func TestSomeWrongType(t *testing.T) {
 	var output bool
 	err = token.Get("baz", &output)
 	require.Error(t, err)
+	require.NotErrorIs(t, err, &paseto.RuleError{})
+	require.NotErrorIs(t, err, &paseto.TokenError{})
 }
 
 func TestSomeWrongKey(t *testing.T) {
@@ -103,6 +109,8 @@ func TestSomeWrongKey(t *testing.T) {
 	var output string
 	err = token.Get("bar", &output)
 	require.Error(t, err)
+	require.NotErrorIs(t, err, &paseto.RuleError{})
+	require.NotErrorIs(t, err, &paseto.TokenError{})
 }
 
 func TestFromMap(t *testing.T) {
