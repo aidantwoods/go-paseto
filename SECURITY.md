@@ -8,9 +8,10 @@ Today there is only one major release of this library. It will recieve security 
 | ------- | ------------------ |
 | 1.x     | :white_check_mark: |
 
-## Security Releases
+## Security Releases 
 
-There are no security releases to report at this time. Updates which include security fixes will be noted here.
+There are no security releases to report at this time. Updates which include security fixes will be noted here, security issues will also be
+disclosed using [GitHub's security advisories](https://github.com/aidantwoods/go-paseto/security/advisories) feature. 
 
 ## Reporting a Vulnerability
 
