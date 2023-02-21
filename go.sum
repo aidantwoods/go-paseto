@@ -1,3 +1,5 @@
+aidanwoods.dev/go-result v0.0.0-20230221001413-7df9f8edcd68 h1:LBGFT4p6h1cw7CgJ53HY2wJb0GWBmCAqD/F8Lo6XfbA=
+aidanwoods.dev/go-result v0.0.0-20230221001413-7df9f8edcd68/go.mod h1:yridkWghM7AXSFA6wzx0IbsurIm1Lhuro3rYef8FBHM=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

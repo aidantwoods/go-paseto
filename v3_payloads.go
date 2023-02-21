@@ -1,5 +1,7 @@
 package paseto
 
+import t "aidanwoods.dev/go-result"
+
 type v3PublicPayload struct {
 	message   []byte
 	signature [96]byte
@@ -9,11 +11,11 @@ func (p v3PublicPayload) bytes() []byte {
 	return append(p.message, p.signature[:]...)
 }
 
-func newV3PublicPayload(bytes []byte) (v3PublicPayload, error) {
+func newV3PublicPayload(bytes []byte) t.Result[v3PublicPayload] {
 	signatureOffset := len(bytes) - 96
 
 	if signatureOffset < 0 {
-		return v3PublicPayload{}, errorPayloadShort
+		return t.Err[v3PublicPayload](errorPayloadShort)
 	}
 
 	message := make([]byte, len(bytes)-96)
@@ -22,7 +24,7 @@ func newV3PublicPayload(bytes []byte) (v3PublicPayload, error) {
 	var signature [96]byte
 	copy(signature[:], bytes[signatureOffset:])
 
-	return v3PublicPayload{message, signature}, nil
+	return t.Ok(v3PublicPayload{message, signature})
 }
 
 type v3LocalPayload struct {
@@ -35,9 +37,9 @@ func (p v3LocalPayload) bytes() []byte {
 	return append(append(p.nonce[:], p.cipherText...), p.tag[:]...)
 }
 
-func newV3LocalPayload(bytes []byte) (v3LocalPayload, error) {
+func newV3LocalPayload(bytes []byte) t.Result[v3LocalPayload] {
 	if len(bytes) <= 32+48 {
-		return v3LocalPayload{}, errorPayloadShort
+		return t.Err[v3LocalPayload](errorPayloadShort)
 	}
 
 	macOffset := len(bytes) - 48
@@ -51,5 +53,5 @@ func newV3LocalPayload(bytes []byte) (v3LocalPayload, error) {
 	var tag [48]byte
 	copy(tag[:], bytes[macOffset:])
 
-	return v3LocalPayload{nonce, cipherText, tag}, nil
+	return t.Ok(v3LocalPayload{nonce, cipherText, tag})
 }

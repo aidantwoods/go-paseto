@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"aidanwoods.dev/go-paseto"
+	ty "aidanwoods.dev/go-result"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,7 +40,7 @@ func TestV2(t *testing.T) {
 
 	for _, test := range tests.Tests {
 		t.Run(test.Name, func(t *testing.T) {
-			var decoded paseto.Packet
+			var decoded ty.Result[paseto.Packet]
 
 			switch test.Key {
 			// Local mode
@@ -47,50 +48,50 @@ func TestV2(t *testing.T) {
 				sk, err := paseto.V2SymmetricKeyFromHex(test.Key)
 				require.NoError(t, err)
 
-				message, err := paseto.NewMessage(paseto.V2Local, test.Token)
+				message := paseto.NewMessage(paseto.V2Local, test.Token)
 				if test.ExpectFail {
-					require.Error(t, err)
-					require.ErrorIs(t, err, &paseto.TokenError{})
-					require.NotErrorIs(t, err, &paseto.RuleError{})
+					require.Error(t, *message.Err())
+					require.ErrorIs(t, *message.Err(), &paseto.TokenError{})
+					require.NotErrorIs(t, *message.Err(), &paseto.RuleError{})
 					return
 				}
-				require.NoError(t, err)
+				message.Expect("message should be present")
 
-				decoded, err = paseto.V2LocalDecrypt(message, sk)
+				decoded = paseto.V2LocalDecrypt(message.Unwrap(), sk)
 				if test.ExpectFail {
-					require.Error(t, err)
-					require.ErrorIs(t, err, &paseto.TokenError{})
-					require.NotErrorIs(t, err, &paseto.RuleError{})
+					require.Error(t, *decoded.Err())
+					require.ErrorIs(t, *decoded.Err(), &paseto.TokenError{})
+					require.NotErrorIs(t, *decoded.Err(), &paseto.RuleError{})
 					return
 				}
-				require.NoError(t, err)
+				decoded.Expect("decoded should be present")
 
 			// Public mode
 			case "":
 				pk, err := paseto.NewV2AsymmetricPublicKeyFromHex(test.PublicKey)
 				require.NoError(t, err)
 
-				message, err := paseto.NewMessage(paseto.V2Public, test.Token)
+				message := paseto.NewMessage(paseto.V2Public, test.Token)
 				if test.ExpectFail {
-					require.Error(t, err)
-					require.ErrorIs(t, err, &paseto.TokenError{})
-					require.NotErrorIs(t, err, &paseto.RuleError{})
+					require.Error(t, *message.Err())
+					require.ErrorIs(t, *message.Err(), &paseto.TokenError{})
+					require.NotErrorIs(t, *message.Err(), &paseto.RuleError{})
 					return
 				}
-				require.NoError(t, err)
+				message.Expect("message should be present")
 
-				decoded, err = paseto.V2PublicVerify(message, pk)
+				decoded = paseto.V2PublicVerify(message.Unwrap(), pk)
 				if test.ExpectFail {
-					require.Error(t, err)
-					require.ErrorIs(t, err, &paseto.TokenError{})
-					require.NotErrorIs(t, err, &paseto.RuleError{})
+					require.Error(t, *decoded.Err())
+					require.ErrorIs(t, *decoded.Err(), &paseto.TokenError{})
+					require.NotErrorIs(t, *decoded.Err(), &paseto.RuleError{})
 					return
 				}
-				require.NoError(t, err)
+				decoded.Expect("decoded should be present")
 			}
 
-			require.Equal(t, test.Payload, string(decoded.Content()))
-			require.Equal(t, test.Footer, string(decoded.Footer()))
+			require.Equal(t, test.Payload, string(decoded.Unwrap().Content()))
+			require.Equal(t, test.Footer, string(decoded.Unwrap().Footer()))
 
 			packet := paseto.NewPacket([]byte(test.Payload), []byte(test.Footer))
 
@@ -132,7 +133,7 @@ func TestV3(t *testing.T) {
 
 	for _, test := range tests.Tests {
 		t.Run(test.Name, func(t *testing.T) {
-			var decoded paseto.Packet
+			var decoded ty.Result[paseto.Packet]
 
 			switch test.Key {
 			// Local mode
@@ -140,50 +141,50 @@ func TestV3(t *testing.T) {
 				sk, err := paseto.V3SymmetricKeyFromHex(test.Key)
 				require.NoError(t, err)
 
-				message, err := paseto.NewMessage(paseto.V3Local, test.Token)
+				message := paseto.NewMessage(paseto.V3Local, test.Token)
 				if test.ExpectFail {
-					require.Error(t, err)
-					require.ErrorIs(t, err, &paseto.TokenError{})
-					require.NotErrorIs(t, err, &paseto.RuleError{})
+					require.Error(t, *message.Err())
+					require.ErrorIs(t, *message.Err(), &paseto.TokenError{})
+					require.NotErrorIs(t, *message.Err(), &paseto.RuleError{})
 					return
 				}
-				require.NoError(t, err)
+				message.Expect("message should be present")
 
-				decoded, err = paseto.V3LocalDecrypt(message, sk, []byte(test.ImplicitAssertation))
+				decoded = paseto.V3LocalDecrypt(message.Unwrap(), sk, []byte(test.ImplicitAssertation))
 				if test.ExpectFail {
-					require.Error(t, err)
-					require.ErrorIs(t, err, &paseto.TokenError{})
-					require.NotErrorIs(t, err, &paseto.RuleError{})
+					require.Error(t, *decoded.Err())
+					require.ErrorIs(t, *decoded.Err(), &paseto.TokenError{})
+					require.NotErrorIs(t, *decoded.Err(), &paseto.RuleError{})
 					return
 				}
-				require.NoError(t, err)
+				decoded.Expect("decoded should be present")
 
 			// Public mode
 			case "":
 				pk, err := paseto.NewV3AsymmetricPublicKeyFromHex(test.PublicKey)
 				require.NoError(t, err)
 
-				message, err := paseto.NewMessage(paseto.V3Public, test.Token)
+				message := paseto.NewMessage(paseto.V3Public, test.Token)
 				if test.ExpectFail {
-					require.Error(t, err)
-					require.ErrorIs(t, err, &paseto.TokenError{})
-					require.NotErrorIs(t, err, &paseto.RuleError{})
+					require.Error(t, *message.Err())
+					require.ErrorIs(t, *message.Err(), &paseto.TokenError{})
+					require.NotErrorIs(t, *message.Err(), &paseto.RuleError{})
 					return
 				}
-				require.NoError(t, err)
+				message.Expect("message should be present")
 
-				decoded, err = paseto.V3PublicVerify(message, pk, []byte(test.ImplicitAssertation))
+				decoded = paseto.V3PublicVerify(message.Unwrap(), pk, []byte(test.ImplicitAssertation))
 				if test.ExpectFail {
-					require.Error(t, err)
-					require.ErrorIs(t, err, &paseto.TokenError{})
-					require.NotErrorIs(t, err, &paseto.RuleError{})
+					require.Error(t, *decoded.Err())
+					require.ErrorIs(t, *decoded.Err(), &paseto.TokenError{})
+					require.NotErrorIs(t, *decoded.Err(), &paseto.RuleError{})
 					return
 				}
-				require.NoError(t, err)
+				decoded.Expect("decoded should be present")
 			}
 
-			require.Equal(t, test.Payload, string(decoded.Content()))
-			require.Equal(t, test.Footer, string(decoded.Footer()))
+			require.Equal(t, test.Payload, string(decoded.Unwrap().Content()))
+			require.Equal(t, test.Footer, string(decoded.Unwrap().Footer()))
 
 			packet := paseto.NewPacket([]byte(test.Payload), []byte(test.Footer))
 			implicit := []byte(test.ImplicitAssertation)
@@ -214,11 +215,11 @@ func TestV3(t *testing.T) {
 				pk, err := paseto.NewV3AsymmetricPublicKeyFromHex(test.PublicKey)
 				require.NoError(t, err)
 
-				decoded, err = paseto.V3PublicVerify(signed, pk, []byte(test.ImplicitAssertation))
+				decoded = paseto.V3PublicVerify(signed, pk, []byte(test.ImplicitAssertation))
 				require.NoError(t, err)
 
-				require.Equal(t, test.Payload, string(decoded.Content()))
-				require.Equal(t, test.Footer, string(decoded.Footer()))
+				require.Equal(t, test.Payload, string(decoded.Unwrap().Content()))
+				require.Equal(t, test.Footer, string(decoded.Unwrap().Footer()))
 			}
 		})
 	}
@@ -240,7 +241,7 @@ func TestV4(t *testing.T) {
 
 	for _, test := range tests.Tests {
 		t.Run(test.Name, func(t *testing.T) {
-			var decoded paseto.Packet
+			var decoded ty.Result[paseto.Packet]
 
 			switch test.Key {
 			// Local mode
@@ -248,50 +249,50 @@ func TestV4(t *testing.T) {
 				sk, err := paseto.V4SymmetricKeyFromHex(test.Key)
 				require.NoError(t, err)
 
-				message, err := paseto.NewMessage(paseto.V4Local, test.Token)
+				message := paseto.NewMessage(paseto.V4Local, test.Token)
 				if test.ExpectFail {
-					require.Error(t, err)
-					require.ErrorIs(t, err, &paseto.TokenError{})
-					require.NotErrorIs(t, err, &paseto.RuleError{})
+					require.Error(t, *message.Err())
+					require.ErrorIs(t, *message.Err(), &paseto.TokenError{})
+					require.NotErrorIs(t, *message.Err(), &paseto.RuleError{})
 					return
 				}
-				require.NoError(t, err)
+				message.Expect("message should be present")
 
-				decoded, err = paseto.V4LocalDecrypt(message, sk, []byte(test.ImplicitAssertation))
+				decoded = paseto.V4LocalDecrypt(message.Unwrap(), sk, []byte(test.ImplicitAssertation))
 				if test.ExpectFail {
-					require.Error(t, err)
-					require.ErrorIs(t, err, &paseto.TokenError{})
-					require.NotErrorIs(t, err, &paseto.RuleError{})
+					require.Error(t, *decoded.Err())
+					require.ErrorIs(t, *decoded.Err(), &paseto.TokenError{})
+					require.NotErrorIs(t, *decoded.Err(), &paseto.RuleError{})
 					return
 				}
-				require.NoError(t, err)
+				decoded.Expect("decoded should be present")
 
 			// Public mode
 			case "":
 				pk, err := paseto.NewV4AsymmetricPublicKeyFromHex(test.PublicKey)
 				require.NoError(t, err)
 
-				message, err := paseto.NewMessage(paseto.V4Public, test.Token)
+				message := paseto.NewMessage(paseto.V4Public, test.Token)
 				if test.ExpectFail {
-					require.Error(t, err)
-					require.ErrorIs(t, err, &paseto.TokenError{})
-					require.NotErrorIs(t, err, &paseto.RuleError{})
+					require.Error(t, *message.Err())
+					require.ErrorIs(t, *message.Err(), &paseto.TokenError{})
+					require.NotErrorIs(t, *message.Err(), &paseto.RuleError{})
 					return
 				}
-				require.NoError(t, err)
+				message.Expect("message should be present")
 
-				decoded, err = paseto.V4PublicVerify(message, pk, []byte(test.ImplicitAssertation))
+				decoded = paseto.V4PublicVerify(message.Unwrap(), pk, []byte(test.ImplicitAssertation))
 				if test.ExpectFail {
-					require.Error(t, err)
-					require.ErrorIs(t, err, &paseto.TokenError{})
-					require.NotErrorIs(t, err, &paseto.RuleError{})
+					require.Error(t, *decoded.Err())
+					require.ErrorIs(t, *decoded.Err(), &paseto.TokenError{})
+					require.NotErrorIs(t, *decoded.Err(), &paseto.RuleError{})
 					return
 				}
-				require.NoError(t, err)
+				decoded.Expect("decoded should be present")
 			}
 
-			require.Equal(t, test.Payload, string(decoded.Content()))
-			require.Equal(t, test.Footer, string(decoded.Footer()))
+			require.Equal(t, test.Payload, string(decoded.Unwrap().Content()))
+			require.Equal(t, test.Footer, string(decoded.Unwrap().Footer()))
 
 			packet := paseto.NewPacket([]byte(test.Payload), []byte(test.Footer))
 			implicit := []byte(test.ImplicitAssertation)

@@ -4,6 +4,8 @@ import (
 	"encoding/base64"
 	"errors"
 	"strings"
+
+	t "aidanwoods.dev/go-result"
 )
 
 var b64 = base64.RawURLEncoding.Strict()
@@ -14,12 +16,12 @@ func Encode(bytes []byte) string {
 }
 
 // Decode Standard decoding for Paseto is URL safe base64 with no padding
-func Decode(encoded string) ([]byte, error) {
+func Decode(encoded string) t.Result[[]byte] {
 	// From: https://pkg.go.dev/encoding/base64#Encoding.Strict
 	// Note that the input is still malleable, as new line characters (CR and LF) are still ignored.
 	if strings.ContainsAny(encoded, "\n\r") {
-		return nil, errors.New("Input may not contain new lines")
+		return t.Err[[]byte](errors.New("Input may not contain new lines"))
 	}
 
-	return b64.DecodeString(encoded)
+	return t.NewResult(b64.DecodeString(encoded))
 }
