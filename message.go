@@ -20,22 +20,24 @@ type message struct {
 // token cannot be parsed, will return an error instead.
 func newMessage(protocol Protocol, token string) t.Result[message] {
 	return t.Out[message](
-		deconstructToken(token)).AndThen(func(parts deconstructedToken) t.Result[message] {
-		if parts.header != protocol.Header() {
-			return t.Err[message](errorMessageHeader(protocol, parts.header))
-		}
+		deconstructToken(token)).
+		AndThen(func(parts deconstructedToken) t.Result[message] {
+			if parts.header != protocol.Header() {
+				return t.Err[message](errorMessageHeader(protocol, parts.header))
+			}
 
-		return t.Out2[message, payload](
-			encoding.Decode(parts.encodedPayload)).
-			AndThen(protocol.newPayload).
-			AndThen(func(p payload) t.Result[message] {
-				return t.Out[message](
-					encoding.Decode(parts.encodedFooter)).
-					AndThen(func(footer []byte) t.Result[message] {
-						return t.Ok(newMessageFromPayloadAndFooter(p, footer))
-					})
-			}).MapError(t.ErrMapUp(newTokenError))
-	})
+			return t.Out2[message, payload](
+				encoding.Decode(parts.encodedPayload)).
+				AndThen(protocol.newPayload).
+				AndThen(func(p payload) t.Result[message] {
+					return t.Out[message](
+						encoding.Decode(parts.encodedFooter)).
+						AndThen(func(footer []byte) t.Result[message] {
+							return t.Ok(newMessageFromPayloadAndFooter(p, footer))
+						})
+				})
+		}).
+		MapError(t.ErrMapUp(newTokenError))
 }
 
 // Header returns the header string for a Paseto message.
