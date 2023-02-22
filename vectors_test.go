@@ -51,8 +51,8 @@ func TestV2(t *testing.T) {
 				message := paseto.NewMessage(paseto.V2Local, test.Token)
 				if test.ExpectFail {
 					require.Error(t, message.UnwrapErr())
-					require.ErrorIs(t, message.UnwrapErr(), &paseto.TokenError{})
-					require.NotErrorIs(t, message.UnwrapErr(), &paseto.RuleError{})
+					require.ErrorIs(t, message.UnwrapErr(), paseto.TokenError{})
+					require.NotErrorIs(t, message.UnwrapErr(), paseto.RuleError{})
 					return
 				}
 				message.Expect("message should be present")
@@ -60,8 +60,8 @@ func TestV2(t *testing.T) {
 				decoded = paseto.V2LocalDecrypt(message.Unwrap(), sk)
 				if test.ExpectFail {
 					require.Error(t, decoded.UnwrapErr())
-					require.ErrorIs(t, decoded.UnwrapErr(), &paseto.TokenError{})
-					require.NotErrorIs(t, decoded.UnwrapErr(), &paseto.RuleError{})
+					require.ErrorIs(t, decoded.UnwrapErr(), paseto.TokenError{})
+					require.NotErrorIs(t, decoded.UnwrapErr(), paseto.RuleError{})
 					return
 				}
 				decoded.Expect("decoded should be present")
@@ -74,8 +74,8 @@ func TestV2(t *testing.T) {
 				message := paseto.NewMessage(paseto.V2Public, test.Token)
 				if test.ExpectFail {
 					require.Error(t, message.UnwrapErr())
-					require.ErrorIs(t, message.UnwrapErr(), &paseto.TokenError{})
-					require.NotErrorIs(t, message.UnwrapErr(), &paseto.RuleError{})
+					require.ErrorIs(t, message.UnwrapErr(), paseto.TokenError{})
+					require.NotErrorIs(t, message.UnwrapErr(), paseto.RuleError{})
 					return
 				}
 				message.Expect("message should be present")
@@ -83,8 +83,8 @@ func TestV2(t *testing.T) {
 				decoded = paseto.V2PublicVerify(message.Unwrap(), pk)
 				if test.ExpectFail {
 					require.Error(t, decoded.UnwrapErr())
-					require.ErrorIs(t, decoded.UnwrapErr(), &paseto.TokenError{})
-					require.NotErrorIs(t, decoded.UnwrapErr(), &paseto.RuleError{})
+					require.ErrorIs(t, decoded.UnwrapErr(), paseto.TokenError{})
+					require.NotErrorIs(t, decoded.UnwrapErr(), paseto.RuleError{})
 					return
 				}
 				decoded.Expect("decoded should be present")
@@ -144,8 +144,8 @@ func TestV3(t *testing.T) {
 				message := paseto.NewMessage(paseto.V3Local, test.Token)
 				if test.ExpectFail {
 					require.Error(t, message.UnwrapErr())
-					require.ErrorIs(t, message.UnwrapErr(), &paseto.TokenError{})
-					require.NotErrorIs(t, message.UnwrapErr(), &paseto.RuleError{})
+					require.ErrorIs(t, message.UnwrapErr(), paseto.TokenError{})
+					require.NotErrorIs(t, message.UnwrapErr(), paseto.RuleError{})
 					return
 				}
 				message.Expect("message should be present")
@@ -153,8 +153,8 @@ func TestV3(t *testing.T) {
 				decoded = paseto.V3LocalDecrypt(message.Unwrap(), sk, []byte(test.ImplicitAssertation))
 				if test.ExpectFail {
 					require.Error(t, decoded.UnwrapErr())
-					require.ErrorIs(t, decoded.UnwrapErr(), &paseto.TokenError{})
-					require.NotErrorIs(t, decoded.UnwrapErr(), &paseto.RuleError{})
+					require.ErrorIs(t, decoded.UnwrapErr(), paseto.TokenError{})
+					require.NotErrorIs(t, decoded.UnwrapErr(), paseto.RuleError{})
 					return
 				}
 				decoded.Expect("decoded should be present")
@@ -167,8 +167,8 @@ func TestV3(t *testing.T) {
 				message := paseto.NewMessage(paseto.V3Public, test.Token)
 				if test.ExpectFail {
 					require.Error(t, message.UnwrapErr())
-					require.ErrorIs(t, message.UnwrapErr(), &paseto.TokenError{})
-					require.NotErrorIs(t, message.UnwrapErr(), &paseto.RuleError{})
+					require.ErrorIs(t, message.UnwrapErr(), paseto.TokenError{})
+					require.NotErrorIs(t, message.UnwrapErr(), paseto.RuleError{})
 					return
 				}
 				message.Expect("message should be present")
@@ -176,8 +176,8 @@ func TestV3(t *testing.T) {
 				decoded = paseto.V3PublicVerify(message.Unwrap(), pk, []byte(test.ImplicitAssertation))
 				if test.ExpectFail {
 					require.Error(t, decoded.UnwrapErr())
-					require.ErrorIs(t, decoded.UnwrapErr(), &paseto.TokenError{})
-					require.NotErrorIs(t, decoded.UnwrapErr(), &paseto.RuleError{})
+					require.ErrorIs(t, decoded.UnwrapErr(), paseto.TokenError{})
+					require.NotErrorIs(t, decoded.UnwrapErr(), paseto.RuleError{})
 					return
 				}
 				decoded.Expect("decoded should be present")
@@ -252,8 +252,8 @@ func TestV4(t *testing.T) {
 				message := paseto.NewMessage(paseto.V4Local, test.Token)
 				if test.ExpectFail {
 					require.Error(t, message.UnwrapErr())
-					require.ErrorIs(t, message.UnwrapErr(), &paseto.TokenError{})
-					require.NotErrorIs(t, message.UnwrapErr(), &paseto.RuleError{})
+					require.ErrorIs(t, message.UnwrapErr(), paseto.TokenError{})
+					require.NotErrorIs(t, message.UnwrapErr(), paseto.RuleError{})
 					return
 				}
 				message.Expect("message should be present")
@@ -261,8 +261,8 @@ func TestV4(t *testing.T) {
 				decoded = paseto.V4LocalDecrypt(message.Unwrap(), sk, []byte(test.ImplicitAssertation))
 				if test.ExpectFail {
 					require.Error(t, decoded.UnwrapErr())
-					require.ErrorIs(t, decoded.UnwrapErr(), &paseto.TokenError{})
-					require.NotErrorIs(t, decoded.UnwrapErr(), &paseto.RuleError{})
+					require.ErrorIs(t, decoded.UnwrapErr(), paseto.TokenError{})
+					require.NotErrorIs(t, decoded.UnwrapErr(), paseto.RuleError{})
 					return
 				}
 				decoded.Expect("decoded should be present")
@@ -275,8 +275,8 @@ func TestV4(t *testing.T) {
 				message := paseto.NewMessage(paseto.V4Public, test.Token)
 				if test.ExpectFail {
 					require.Error(t, message.UnwrapErr())
-					require.ErrorIs(t, message.UnwrapErr(), &paseto.TokenError{})
-					require.NotErrorIs(t, message.UnwrapErr(), &paseto.RuleError{})
+					require.ErrorIs(t, message.UnwrapErr(), paseto.TokenError{})
+					require.NotErrorIs(t, message.UnwrapErr(), paseto.RuleError{})
 					return
 				}
 				message.Expect("message should be present")
@@ -284,6 +284,7 @@ func TestV4(t *testing.T) {
 				decoded = paseto.V4PublicVerify(message.Unwrap(), pk, []byte(test.ImplicitAssertation))
 				if test.ExpectFail {
 					require.Error(t, decoded.UnwrapErr())
+					// check pointer errors still recognised
 					require.ErrorIs(t, decoded.UnwrapErr(), &paseto.TokenError{})
 					require.NotErrorIs(t, decoded.UnwrapErr(), &paseto.RuleError{})
 					return

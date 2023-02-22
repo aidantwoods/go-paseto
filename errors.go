@@ -18,8 +18,9 @@ func (e TokenError) Error() string {
 }
 
 func (_ TokenError) Is(e error) bool {
-	_, ok := e.(*TokenError)
-	return ok
+	_, ok1 := e.(TokenError)
+	_, ok2 := e.(*TokenError)
+	return ok1 || ok2
 }
 
 func (e TokenError) Unwrap() error {
@@ -47,8 +48,9 @@ func (e RuleError) Error() string {
 }
 
 func (_ RuleError) Is(e error) bool {
-	_, ok := e.(*RuleError)
-	return ok
+	_, ok1 := e.(RuleError)
+	_, ok2 := e.(*RuleError)
+	return ok1 || ok2
 }
 
 func (e RuleError) Unwrap() error {
