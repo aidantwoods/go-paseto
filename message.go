@@ -101,40 +101,40 @@ func deconstructToken(token string) t.Result[deconstructedToken] {
 // the verified token (but not validated with rules) if successful, or error in
 // the event of failure.
 func (m message) v2Verify(key V2AsymmetricPublicKey) t.Result[Token] {
-	return t.AndThen(v2PublicVerify(m, key), packet.token)
+	return t.Out[Token](v2PublicVerify(m, key)).AndThen(packet.token)
 }
 
 // V2Decrypt will decrypt a v2 local paseto message. Will return a pointer to
 // the decrypted token (but not validated with rules) if successful, or error in
 // the event of failure.
 func (m message) v2Decrypt(key V2SymmetricKey) t.Result[Token] {
-	return t.AndThen(v2LocalDecrypt(m, key), packet.token)
+	return t.Out[Token](v2LocalDecrypt(m, key)).AndThen(packet.token)
 }
 
 // V3Verify will verify a v4 public paseto message. Will return a pointer to
 // the verified token (but not validated with rules) if successful, or error in
 // the event of failure.
 func (m message) v3Verify(key V3AsymmetricPublicKey, implicit []byte) t.Result[Token] {
-	return t.AndThen(v3PublicVerify(m, key, implicit), packet.token)
+	return t.Out[Token](v3PublicVerify(m, key, implicit)).AndThen(packet.token)
 }
 
 // V3Decrypt will decrypt a v3 local paseto message. Will return a pointer to
 // the decrypted token (but not validated with rules) if successful, or error in
 // the event of failure.
 func (m message) v3Decrypt(key V3SymmetricKey, implicit []byte) t.Result[Token] {
-	return t.AndThen(v3LocalDecrypt(m, key, implicit), packet.token)
+	return t.Out[Token](v3LocalDecrypt(m, key, implicit)).AndThen(packet.token)
 }
 
 // V4Verify will verify a v4 public paseto message. Will return a pointer to
 // the verified token (but not validated with rules) if successful, or error in
 // the event of failure.
 func (m message) v4Verify(key V4AsymmetricPublicKey, implicit []byte) t.Result[Token] {
-	return t.AndThen(v4PublicVerify(m, key, implicit), packet.token)
+	return t.Out[Token](v4PublicVerify(m, key, implicit)).AndThen(packet.token)
 }
 
 // V4Decrypt will decrypt a v4 local paseto message. Will return a pointer to
 // the decrypted token (but not validated with rules) if successful, or error in
 // the event of failure.
 func (m message) v4Decrypt(key V4SymmetricKey, implicit []byte) t.Result[Token] {
-	return t.AndThen(v4LocalDecrypt(m, key, implicit), packet.token)
+	return t.Out[Token](v4LocalDecrypt(m, key, implicit)).AndThen(packet.token)
 }

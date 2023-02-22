@@ -36,68 +36,71 @@ func MakeParser(rules []Rule) Parser {
 // ParseV2Local will parse and decrypt a v2 local paseto and validate against
 // any parser rules. Error if parsing, decryption, or any rule fails.
 func (p Parser) ParseV2Local(key V2SymmetricKey, tainted string) (*Token, error) {
-	token := t.AndThen(newMessage(V2Local, tainted), func(m message) t.Result[Token] {
-		return m.v2Decrypt(key)
-	})
-
-	return t.AndThen(token, p.validate).Results()
+	return t.Out2[Token, Token](
+		newMessage(V2Local, tainted)).
+		AndThen(func(m message) t.Result[Token] { return m.v2Decrypt(key) }).
+		AndThen(p.validate).
+		Results()
 }
 
 // ParseV2Public will parse and verify a v2 public paseto and validate against
 // any parser rules. Error if parsing, verification, or any rule fails.
 func (p Parser) ParseV2Public(key V2AsymmetricPublicKey, tainted string) (*Token, error) {
-	token := t.AndThen(newMessage(V2Public, tainted), func(m message) t.Result[Token] {
-		return m.v2Verify(key)
-	})
-
-	return t.AndThen(token, p.validate).Results()
+	return t.Out2[Token, Token](
+		newMessage(V2Public, tainted)).
+		AndThen(func(m message) t.Result[Token] { return m.v2Verify(key) }).
+		AndThen(p.validate).
+		Results()
 }
 
 // ParseV3Local will parse and decrypt a v3 local paseto and validate against
 // any parser rules. Error if parsing, decryption, or any rule fails.
 func (p Parser) ParseV3Local(key V3SymmetricKey, tainted string, implicit []byte) (*Token, error) {
-	token := t.AndThen(newMessage(V3Local, tainted), func(m message) t.Result[Token] {
-		return m.v3Decrypt(key, implicit)
-	})
-
-	return t.AndThen(token, p.validate).Results()
+	return t.Out2[Token, Token](
+		newMessage(V3Local, tainted)).
+		AndThen(func(m message) t.Result[Token] { return m.v3Decrypt(key, implicit) }).
+		AndThen(p.validate).
+		Results()
 }
 
 // ParseV3Public will parse and verify a v3 public paseto and validate against
 // any parser rules. Error if parsing, verification, or any rule fails.
 func (p Parser) ParseV3Public(key V3AsymmetricPublicKey, tainted string, implicit []byte) (*Token, error) {
-	token := t.AndThen(newMessage(V3Public, tainted), func(m message) t.Result[Token] {
-		return m.v3Verify(key, implicit)
-	})
-
-	return t.AndThen(token, p.validate).Results()
+	return t.Out2[Token, Token](
+		newMessage(V3Public, tainted)).
+		AndThen(func(m message) t.Result[Token] { return m.v3Verify(key, implicit) }).
+		AndThen(p.validate).
+		Results()
 }
 
 // ParseV4Local will parse and decrypt a v4 local paseto and validate against
 // any parser rules. Error if parsing, decryption, or any rule fails.
 func (p Parser) ParseV4Local(key V4SymmetricKey, tainted string, implicit []byte) (*Token, error) {
-	token := t.AndThen(newMessage(V4Local, tainted), func(m message) t.Result[Token] {
-		return m.v4Decrypt(key, implicit)
-	})
-
-	return t.AndThen(token, p.validate).Results()
+	return t.Out2[Token, Token](
+		newMessage(V4Local, tainted)).
+		AndThen(func(m message) t.Result[Token] { return m.v4Decrypt(key, implicit) }).
+		AndThen(p.validate).
+		Results()
 }
 
 // ParseV4Public will parse and verify a v4 public paseto and validate against
 // any parser rules. Error if parsing, verification, or any rule fails.
 func (p Parser) ParseV4Public(key V4AsymmetricPublicKey, tainted string, implicit []byte) (*Token, error) {
-	token := t.AndThen(newMessage(V4Public, tainted), func(m message) t.Result[Token] {
-		return m.v4Verify(key, implicit)
-	})
-
-	return t.AndThen(token, p.validate).Results()
+	return t.Out2[Token, Token](
+		newMessage(V4Public, tainted)).
+		AndThen(func(m message) t.Result[Token] { return m.v4Verify(key, implicit) }).
+		AndThen(p.validate).
+		Results()
 }
 
 // UnsafeParseFooter returns the footer of a Paseto message. Beware that this
 // footer is not cryptographically verified at this stage, nor are any claims
 // validated.
 func (p Parser) UnsafeParseFooter(protocol Protocol, tainted string) ([]byte, error) {
-	return t.Map(newMessage(protocol, tainted), message.unsafeFooter).UnwrappedResults()
+	return t.Out[[]byte](
+		newMessage(protocol, tainted)).
+		Map(message.unsafeFooter).
+		UnwrappedResults()
 }
 
 // SetRules will overwrite any currently set rules with those specified.

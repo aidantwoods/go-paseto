@@ -49,10 +49,12 @@ func NewTokenFromClaimsJSON(claimsData []byte, footer []byte) (*Token, error) {
 // be serialisable to JSON using encoding/json.
 // Set will check this and return an error if it is not serialisable.
 func (token *Token) Set(key string, value interface{}) error {
-	return t.AndThen(marshalTokenValue(value), func(value tokenValue) t.Result[any] {
-		token.claims[key] = value
-		return t.Ok[any](nil)
-	}).
+	return t.Out[any](
+		marshalTokenValue(value)).
+		AndThen(func(value tokenValue) t.Result[any] {
+			token.claims[key] = value
+			return t.Ok[any](nil)
+		}).
 		WrapErr("could not set key `" + key + "': %w").
 		UnwrapErrOr(nil)
 }
