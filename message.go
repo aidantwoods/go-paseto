@@ -19,25 +19,27 @@ type message struct {
 // protocol. If the given token does not match the given token, or if the
 // token cannot be parsed, will return an error instead.
 func newMessage(protocol Protocol, token string) t.Result[message] {
-	return t.Out[message](
-		deconstructToken(token)).
-		AndThen(func(parts deconstructedToken) t.Result[message] {
-			if parts.header != protocol.Header() {
-				return t.Err[message](errorMessageHeader(protocol, parts.header))
-			}
+	var parts deconstructedToken
+	if err := deconstructToken(token).Ok(&parts); err != nil {
+		return t.Err[message](err)
+	}
 
-			return t.Out2[message, payload](
-				encoding.Decode(parts.encodedPayload)).
-				AndThen(protocol.newPayload).
-				AndThen(func(p payload) t.Result[message] {
-					return t.Out[message](
-						encoding.Decode(parts.encodedFooter)).
-						AndThen(func(footer []byte) t.Result[message] {
-							return t.Ok(newMessageFromPayloadAndFooter(p, footer))
-						})
-				})
-		}).
-		MapError(t.ErrMapUp(newTokenError))
+	if parts.header != protocol.Header() {
+		return t.Err[message](errorMessageHeader(protocol, parts.header))
+	}
+
+	var p payload
+	if err := t.Out[payload](encoding.Decode(parts.encodedPayload)).
+		AndThen(protocol.newPayload).Ok(&p); err != nil {
+		return t.Err[message](newTokenError(err))
+	}
+
+	var footer []byte
+	if err := encoding.Decode(parts.encodedFooter).Ok(&footer); err != nil {
+		return t.Err[message](newTokenError(err))
+	}
+
+	return t.Ok(newMessageFromPayloadAndFooter(p, footer))
 }
 
 // Header returns the header string for a Paseto message.
