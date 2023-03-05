@@ -116,7 +116,7 @@ func (p *Parser) AddRule(rule ...Rule) {
 func (p Parser) validate(token Token) t.Result[Token] {
 	for _, rule := range p.rules {
 		if err := rule(token); err != nil {
-			return t.Err[Token](RuleError{err})
+			return t.Err[Token](newRuleError(err))
 		}
 	}
 
