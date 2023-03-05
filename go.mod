@@ -3,12 +3,12 @@ module aidanwoods.dev/go-paseto
 go 1.18
 
 require (
+	aidanwoods.dev/go-result v0.0.0-20230304000535-be9423cc2261
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/crypto v0.7.0
 )
 
 require (
-	aidanwoods.dev/go-result v0.0.0-20230222015312-30be9e9946f2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	golang.org/x/sys v0.6.0 // indirect
