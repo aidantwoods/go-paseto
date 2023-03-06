@@ -1,3 +1,6 @@
+// A Go implementation of PASETO.
+// Paseto is everything you love about JOSE (JWT, JWE, JWS) without any of the many design deficits
+// that plague the JOSE standards.
 package paseto
 
 import (
