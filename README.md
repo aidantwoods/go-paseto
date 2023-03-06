@@ -168,3 +168,11 @@ Version 4 is fully supported.
 Version 3 is fully supported.
 ## Version 2
 Version 2 is fully supported.
+
+# Supported Go Versions
+Only [officially supported](https://go.dev/doc/devel/release#policy) versions of Go will be
+supported by Go Paseto. Versions of Go which have recently gone out of support may continue to work
+with this library for some time, however this is not guarenteed and should not be relied on.
+
+When support for an out of date version of Go is dropped, this will be done as part of a minor
+version bump.
