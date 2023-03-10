@@ -2,10 +2,11 @@ package paseto
 
 import (
 	"crypto/ed25519"
-	"encoding/hex"
 
+	"aidanwoods.dev/go-paseto/internal/encoding"
 	"aidanwoods.dev/go-paseto/internal/hashing"
 	"aidanwoods.dev/go-paseto/internal/random"
+	t "aidanwoods.dev/go-result"
 )
 
 // V4AsymmetricPublicKey v4 public public key
@@ -15,9 +16,8 @@ type V4AsymmetricPublicKey struct {
 
 // NewV4AsymmetricPublicKeyFromHex Construct a v4 public key from hex
 func NewV4AsymmetricPublicKeyFromHex(hexEncoded string) (V4AsymmetricPublicKey, error) {
-	publicKey, err := hex.DecodeString(hexEncoded)
-
-	if err != nil {
+	var publicKey []byte
+	if err := encoding.HexDecode(hexEncoded).Ok(&publicKey); err != nil {
 		// even though we return error, return a random key here rather than
 		// a nil key
 		return NewV4AsymmetricSecretKey().Public(), err
@@ -39,7 +39,7 @@ func NewV4AsymmetricPublicKeyFromBytes(publicKey []byte) (V4AsymmetricPublicKey,
 
 // ExportHex export a V4AsymmetricPublicKey to hex for storage
 func (k V4AsymmetricPublicKey) ExportHex() string {
-	return hex.EncodeToString(k.ExportBytes())
+	return encoding.HexEncode(k.ExportBytes())
 }
 
 // ExportBytes export a V4AsymmetricPublicKey to raw byte array
@@ -54,18 +54,15 @@ type V4AsymmetricSecretKey struct {
 
 // Public returns the corresponding public key for a secret key
 func (k V4AsymmetricSecretKey) Public() V4AsymmetricPublicKey {
-	material, ok := k.material.Public().(ed25519.PublicKey)
-
-	if !ok {
-		panic("Wrong public key returned")
+	return V4AsymmetricPublicKey{
+		material: t.Cast[ed25519.PublicKey](k.material.Public()).
+			Expect("should produce ed25519 public key"),
 	}
-
-	return V4AsymmetricPublicKey{material}
 }
 
 // ExportHex export a V4AsymmetricSecretKey to hex for storage
 func (k V4AsymmetricSecretKey) ExportHex() string {
-	return hex.EncodeToString(k.ExportBytes())
+	return encoding.HexEncode(k.ExportBytes())
 }
 
 // ExportBytes export a V4AsymmetricSecretKey to raw byte array
@@ -75,27 +72,24 @@ func (k V4AsymmetricSecretKey) ExportBytes() []byte {
 
 // ExportSeedHex export a V4AsymmetricSecretKey's seed to hex for storage
 func (k V4AsymmetricSecretKey) ExportSeedHex() string {
-	return hex.EncodeToString(k.material.Seed())
+	return encoding.HexEncode(k.material.Seed())
 }
 
 // NewV4AsymmetricSecretKey generate a new secret key for use with asymmetric
 // cryptography. Don't forget to export the public key for sharing, DO NOT share
 // this secret key.
 func NewV4AsymmetricSecretKey() V4AsymmetricSecretKey {
-	_, privateKey, err := ed25519.GenerateKey(nil)
-
-	if err != nil {
-		panic("CSPRNG failure")
+	return V4AsymmetricSecretKey{
+		material: t.NewTupleResult(ed25519.GenerateKey(nil)).
+			Expect("CSPRNG should succeed").
+			Second,
 	}
-
-	return V4AsymmetricSecretKey{privateKey}
 }
 
 // NewV4AsymmetricSecretKeyFromHex creates a secret key from hex
 func NewV4AsymmetricSecretKeyFromHex(hexEncoded string) (V4AsymmetricSecretKey, error) {
-	privateKey, err := hex.DecodeString(hexEncoded)
-
-	if err != nil {
+	var privateKey []byte
+	if err := encoding.HexDecode(hexEncoded).Ok(&privateKey); err != nil {
 		// even though we return error, return a random key here rather than
 		// a nil key
 		return NewV4AsymmetricSecretKey(), err
@@ -107,8 +101,10 @@ func NewV4AsymmetricSecretKeyFromHex(hexEncoded string) (V4AsymmetricSecretKey, 
 func isEd25519KeyPairMalformed(privateKey []byte) bool {
 	seed := privateKey[:32]
 
-	pubKeyFromGiven := ed25519.PrivateKey(privateKey).Public().(ed25519.PublicKey)
-	pubKeyFromSeed := ed25519.NewKeyFromSeed(seed).Public().(ed25519.PublicKey)
+	pubKeyFromGiven := t.Cast[ed25519.PublicKey](ed25519.PrivateKey(privateKey).Public()).
+		Expect("should return ed25519 public key")
+	pubKeyFromSeed := t.Cast[ed25519.PublicKey](ed25519.NewKeyFromSeed(seed).Public()).
+		Expect("should return ed25519 public key")
 
 	return !pubKeyFromGiven.Equal(pubKeyFromSeed)
 }
@@ -134,9 +130,8 @@ func NewV4AsymmetricSecretKeyFromBytes(privateKey []byte) (V4AsymmetricSecretKey
 
 // NewV4AsymmetricSecretKeyFromSeed creates a secret key from a seed (hex)
 func NewV4AsymmetricSecretKeyFromSeed(hexEncoded string) (V4AsymmetricSecretKey, error) {
-	seedBytes, err := hex.DecodeString(hexEncoded)
-
-	if err != nil {
+	var seedBytes []byte
+	if err := encoding.HexDecode(hexEncoded).Ok(&seedBytes); err != nil {
 		// even though we return error, return a random key here rather than
 		// a nil key
 		return NewV4AsymmetricSecretKey(), err
@@ -166,7 +161,7 @@ func NewV4SymmetricKey() V4SymmetricKey {
 
 // ExportHex exports the key as hex for storage
 func (k V4SymmetricKey) ExportHex() string {
-	return hex.EncodeToString(k.ExportBytes())
+	return encoding.HexEncode(k.ExportBytes())
 }
 
 // ExportBytes exports the key as raw byte array
@@ -176,9 +171,8 @@ func (k V4SymmetricKey) ExportBytes() []byte {
 
 // V4SymmetricKeyFromHex constructs a key from hex
 func V4SymmetricKeyFromHex(hexEncoded string) (V4SymmetricKey, error) {
-	bytes, err := hex.DecodeString(hexEncoded)
-
-	if err != nil {
+	var bytes []byte
+	if err := encoding.HexDecode(hexEncoded).Ok(&bytes); err != nil {
 		// even though we return error, return a random key here rather than
 		// a nil key
 		return NewV4SymmetricKey(), err
@@ -196,7 +190,6 @@ func V4SymmetricKeyFromBytes(bytes []byte) (V4SymmetricKey, error) {
 	}
 
 	var material [32]byte
-
 	copy(material[:], bytes)
 
 	return V4SymmetricKey{material}, nil

@@ -5,11 +5,12 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha512"
-	"encoding/hex"
 	"io"
 	"math/big"
 
+	"aidanwoods.dev/go-paseto/internal/encoding"
 	"aidanwoods.dev/go-paseto/internal/random"
+	t "aidanwoods.dev/go-result"
 	"golang.org/x/crypto/hkdf"
 )
 
@@ -20,9 +21,8 @@ type V3AsymmetricPublicKey struct {
 
 // NewV3AsymmetricPublicKeyFromHex Construct a v3 public key from hex
 func NewV3AsymmetricPublicKeyFromHex(hexEncoded string) (V3AsymmetricPublicKey, error) {
-	publicKeyBytes, err := hex.DecodeString(hexEncoded)
-
-	if err != nil {
+	var publicKeyBytes []byte
+	if err := encoding.HexDecode(hexEncoded).Ok(&publicKeyBytes); err != nil {
 		// even though we return error, return a random key here rather than
 		// a nil key
 		return NewV3AsymmetricSecretKey().Public(), err
@@ -52,7 +52,7 @@ func (k V3AsymmetricPublicKey) compressed() []byte {
 
 // ExportHex export a V3AsymmetricPublicKey to hex for storage
 func (k V3AsymmetricPublicKey) ExportHex() string {
-	return hex.EncodeToString(k.ExportBytes())
+	return encoding.HexEncode(k.ExportBytes())
 }
 
 // ExportBytes export a V3AsymmetricPublicKey to raw byte array
@@ -72,7 +72,7 @@ func (k V3AsymmetricSecretKey) Public() V3AsymmetricPublicKey {
 
 // ExportHex export a V3AsymmetricSecretKey to hex for storage
 func (k V3AsymmetricSecretKey) ExportHex() string {
-	return hex.EncodeToString(k.ExportBytes())
+	return encoding.HexEncode(k.ExportBytes())
 }
 
 // ExportBytes export a V3AsymmetricSecretKey to raw byte array
@@ -84,20 +84,16 @@ func (k V3AsymmetricSecretKey) ExportBytes() []byte {
 // cryptography. Don't forget to export the public key for sharing, DO NOT share
 // this secret key.
 func NewV3AsymmetricSecretKey() V3AsymmetricSecretKey {
-	privateKey, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
-
-	if err != nil {
-		panic("CSPRNG failure")
-	}
+	privateKey := t.NewResult(ecdsa.GenerateKey(elliptic.P384(), rand.Reader)).
+		Expect("CSPRNG should not fail")
 
 	return V3AsymmetricSecretKey{*privateKey}
 }
 
 // NewV3AsymmetricSecretKeyFromHex creates a secret key from hex
 func NewV3AsymmetricSecretKeyFromHex(hexEncoded string) (V3AsymmetricSecretKey, error) {
-	secretBytes, err := hex.DecodeString(hexEncoded)
-
-	if err != nil {
+	var secretBytes []byte
+	if err := encoding.HexDecode(hexEncoded).Ok(&secretBytes); err != nil {
 		// even though we return error, return a random key here rather than
 		// a nil key
 		return NewV3AsymmetricSecretKey(), err
@@ -141,7 +137,7 @@ func NewV3SymmetricKey() V3SymmetricKey {
 
 // ExportHex exports the key as hex for storage
 func (k V3SymmetricKey) ExportHex() string {
-	return hex.EncodeToString(k.ExportBytes())
+	return encoding.HexEncode(k.ExportBytes())
 }
 
 // ExportBytes exports the key as raw byte array
@@ -151,8 +147,8 @@ func (k V3SymmetricKey) ExportBytes() []byte {
 
 // V3SymmetricKeyFromHex constructs a key from hex
 func V3SymmetricKeyFromHex(hexEncoded string) (V3SymmetricKey, error) {
-	bytes, err := hex.DecodeString(hexEncoded)
-	if err != nil {
+	var bytes []byte
+	if err := encoding.HexDecode(hexEncoded).Ok(&bytes); err != nil {
 		// even though we return error, return a random key here rather than
 		// a nil key
 		return NewV3SymmetricKey(), err
@@ -184,9 +180,7 @@ func (k V3SymmetricKey) split(nonce [32]byte) (encKey [32]byte, authKey [48]byte
 	)
 
 	var tmp [48]byte
-	if _, err := io.ReadFull(kdf, tmp[:]); err != nil {
-		panic(err)
-	}
+	t.NewResult(io.ReadFull(kdf, tmp[:])).Expect("hkdf should not fail")
 
 	copy(encKey[:], tmp[0:32])
 	copy(nonce2[:], tmp[32:48])
@@ -197,9 +191,7 @@ func (k V3SymmetricKey) split(nonce [32]byte) (encKey [32]byte, authKey [48]byte
 		nil,
 		append([]byte("paseto-auth-key-for-aead"), nonce[:]...),
 	)
-	if _, err := io.ReadFull(kdf, authKey[:]); err != nil {
-		panic(err)
-	}
+	t.NewResult(io.ReadFull(kdf, authKey[:])).Expect("hkdf should not fail")
 
 	return encKey, authKey, nonce2
 }

@@ -22,10 +22,9 @@ func v3PublicSign(packet packet, key V3AsymmetricSecretKey, implicit []byte) mes
 
 	hash := sha512.Sum384(m2)
 
-	r, s, err := ecdsa.Sign(rand.Reader, &key.material, hash[:])
-	if err != nil {
-		panic("Failed to sign")
-	}
+	r, s := t.NewTupleResult(ecdsa.Sign(rand.Reader, &key.material, hash[:])).
+		Expect("sign should always succeed").
+		Destructure()
 
 	var rBytes [48]byte
 	var sBytes [48]byte
@@ -74,10 +73,8 @@ func v3LocalEncrypt(p packet, key V3SymmetricKey, implicit []byte, unitTestNonce
 
 	encKey, authKey, nonce2 := key.split(nonce)
 
-	blockCipher, err := aes.NewCipher(encKey[:])
-	if err != nil {
-		panic("Cannot construct cipher")
-	}
+	blockCipher := t.NewResult(aes.NewCipher(encKey[:])).
+		Expect("cipher should construct")
 
 	cipherText := make([]byte, len(p.content))
 	cipher.NewCTR(blockCipher, nonce2[:]).XORKeyStream(cipherText, p.content)
@@ -87,9 +84,8 @@ func v3LocalEncrypt(p packet, key V3SymmetricKey, implicit []byte, unitTestNonce
 	preAuth := encoding.Pae(header, nonce[:], cipherText, p.footer, implicit)
 
 	hm := hmac.New(sha512.New384, authKey[:])
-	if _, err := hm.Write(preAuth); err != nil {
-		panic(err)
-	}
+	t.NewResult(hm.Write(preAuth)).Expect("hmac write should succeed")
+
 	var tag [48]byte
 	copy(tag[:], hm.Sum(nil))
 
@@ -110,9 +106,8 @@ func v3LocalDecrypt(msg message, key V3SymmetricKey, implicit []byte) t.Result[p
 	preAuth := encoding.Pae(header, nonce[:], cipherText, msg.footer, implicit)
 
 	hm := hmac.New(sha512.New384, authKey[:])
-	if _, err := hm.Write(preAuth); err != nil {
-		panic(err)
-	}
+	t.NewResult(hm.Write(preAuth)).Expect("hmac write should succeed")
+
 	var expectedTag [48]byte
 	copy(expectedTag[:], hm.Sum(nil))
 
@@ -120,10 +115,8 @@ func v3LocalDecrypt(msg message, key V3SymmetricKey, implicit []byte) t.Result[p
 		return t.Err[packet](errorBadMAC)
 	}
 
-	blockCipher, err := aes.NewCipher(encKey[:])
-	if err != nil {
-		panic("Cannot construct cipher")
-	}
+	blockCipher := t.NewResult(aes.NewCipher(encKey[:])).
+		Expect("cipher should construct")
 
 	plainText := make([]byte, len(cipherText))
 	cipher.NewCTR(blockCipher, nonce2[:]).XORKeyStream(plainText, cipherText)

@@ -52,10 +52,8 @@ func v4LocalEncrypt(p packet, key V4SymmetricKey, implicit []byte, unitTestNonce
 
 	encKey, authKey, nonce2 := key.split(nonce)
 
-	cipher, err := chacha20.NewUnauthenticatedCipher(encKey[:], nonce2[:])
-	if err != nil {
-		panic("Cannot construct cipher")
-	}
+	cipher := t.NewResult(chacha20.NewUnauthenticatedCipher(encKey[:], nonce2[:])).
+		Expect("cipher should construct")
 
 	cipherText := make([]byte, len(p.content))
 	cipher.XORKeyStream(cipherText, p.content)
@@ -90,10 +88,8 @@ func v4LocalDecrypt(msg message, key V4SymmetricKey, implicit []byte) t.Result[p
 		return t.Err[packet](errorBadMAC)
 	}
 
-	cipher, err := chacha20.NewUnauthenticatedCipher(encKey[:], nonce2[:])
-	if err != nil {
-		panic("Cannot construct cipher")
-	}
+	cipher := t.NewResult(chacha20.NewUnauthenticatedCipher(encKey[:], nonce2[:])).
+		Expect("cipher should construct")
 
 	plainText := make([]byte, len(cipherText))
 	cipher.XORKeyStream(plainText, cipherText)

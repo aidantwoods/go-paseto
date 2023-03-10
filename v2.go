@@ -53,10 +53,8 @@ func v2LocalEncrypt(p packet, key V2SymmetricKey, unitTestNonce []byte) message 
 	var nonce [24]byte
 	hashing.GenericHash(p.content, nonce[:], b[:])
 
-	cipher, err := chacha20poly1305.NewX(key.material[:])
-	if err != nil {
-		panic("Cannot construct cipher")
-	}
+	cipher := t.NewResult(chacha20poly1305.NewX(key.material[:])).
+		Expect("constructing cipher should not fail")
 
 	header := []byte(V2Local.Header())
 
@@ -79,15 +77,13 @@ func v2LocalDecrypt(msg message, key V2SymmetricKey) t.Result[packet] {
 
 	preAuth := encoding.Pae(header, nonce[:], msg.footer)
 
-	cipher, err := chacha20poly1305.NewX(key.material[:])
-	if err != nil {
-		panic("Cannot construct cipher")
-	}
+	cipher := t.NewResult(chacha20poly1305.NewX(key.material[:])).
+		Expect("constructing cipher should not fail")
 
-	plainText, err := cipher.Open(nil, nonce[:], cipherText, preAuth)
-	if err != nil {
+	var plaintext []byte
+	if err := t.NewResult(cipher.Open(nil, nonce[:], cipherText, preAuth)).Ok(&plaintext); err != nil {
 		return t.Err[packet](errorDecrypt(err))
 	}
 
-	return t.Ok(packet{plainText, msg.footer})
+	return t.Ok(packet{plaintext, msg.footer})
 }

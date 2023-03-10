@@ -1,23 +1,17 @@
 package hashing
 
 import (
-	"hash"
-
+	t "aidanwoods.dev/go-result"
 	"golang.org/x/crypto/blake2b"
 )
 
 // GenericHash The same as crypto_generichash as referred to in the Paseto spec
 func GenericHash(in, out, key []byte) {
-	var blake hash.Hash
-	var err error
+	blake := t.NewResult(blake2b.New(len(out), key)).
+		Expect("blake2 hasher construction should be provided with valid length inputs")
 
-	if blake, err = blake2b.New(len(out), key); err != nil {
-		panic(err)
-	}
-
-	if _, err = blake.Write(in); err != nil {
-		panic(err)
-	}
+	t.NewResult(blake.Write(in)).
+		Expect("writing into hasher should not fail")
 
 	copy(out, blake.Sum(nil))
 }

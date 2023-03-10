@@ -49,7 +49,7 @@ func NewTokenFromClaimsJSON(claimsData []byte, footer []byte) (*Token, error) {
 // be serialisable to JSON using encoding/json.
 // Set will check this and return an error if it is not serialisable.
 func (token *Token) Set(key string, value interface{}) error {
-	return t.Out[any](
+	return t.Chain[any](
 		marshalTokenValue(value)).
 		AndThen(func(value tokenValue) t.Result[any] {
 			token.claims[key] = value
@@ -131,13 +131,11 @@ func (t Token) Claims() map[string]interface{} {
 }
 
 // ClaimsJSON gets the stored claims as JSON.
-func (t Token) ClaimsJSON() []byte {
-	data, err := json.Marshal(t.Claims())
-	if err != nil {
-		// these were *just* unmarshalled (and a top level of string keys added)
-		// it is *very* unexpected if this is not reversable
-		panic(err)
-	}
+func (token Token) ClaimsJSON() []byte {
+	// these were *just* unmarshalled (and a top level of string keys added)
+	// it is *very* unexpected if this is not reversable
+	data := t.NewResult(json.Marshal(token.Claims())).
+		Expect("internal claims data should be well formed JSON")
 
 	return data
 }
