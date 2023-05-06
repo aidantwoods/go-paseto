@@ -2,6 +2,8 @@ package paseto
 
 import (
 	"time"
+
+	t "aidanwoods.dev/go-result"
 )
 
 // Parser is used to verify or decrypt a token, and can be provided with
@@ -34,109 +36,71 @@ func MakeParser(rules []Rule) Parser {
 // ParseV2Local will parse and decrypt a v2 local paseto and validate against
 // any parser rules. Error if parsing, decryption, or any rule fails.
 func (p Parser) ParseV2Local(key V2SymmetricKey, tainted string) (*Token, error) {
-	message, err := newMessage(V2Local, tainted)
-	if err != nil {
-		return nil, err
-	}
-
-	token, err := message.v2Decrypt(key)
-	if err != nil {
-		return nil, err
-	}
-
-	return p.validate(*token)
+	return t.Chain2[Token, Token](
+		newMessage(V2Local, tainted)).
+		AndThen(func(m message) t.Result[Token] { return m.v2Decrypt(key) }).
+		AndThen(p.validate).
+		Results()
 }
 
 // ParseV2Public will parse and verify a v2 public paseto and validate against
 // any parser rules. Error if parsing, verification, or any rule fails.
 func (p Parser) ParseV2Public(key V2AsymmetricPublicKey, tainted string) (*Token, error) {
-	message, err := newMessage(V2Public, tainted)
-	if err != nil {
-		return nil, err
-	}
-
-	token, err := message.v2Verify(key)
-	if err != nil {
-		return nil, err
-	}
-
-	return p.validate(*token)
+	return t.Chain2[Token, Token](
+		newMessage(V2Public, tainted)).
+		AndThen(func(m message) t.Result[Token] { return m.v2Verify(key) }).
+		AndThen(p.validate).
+		Results()
 }
 
 // ParseV3Local will parse and decrypt a v3 local paseto and validate against
 // any parser rules. Error if parsing, decryption, or any rule fails.
 func (p Parser) ParseV3Local(key V3SymmetricKey, tainted string, implicit []byte) (*Token, error) {
-	message, err := newMessage(V3Local, tainted)
-	if err != nil {
-		return nil, err
-	}
-
-	token, err := message.v3Decrypt(key, implicit)
-	if err != nil {
-		return nil, err
-	}
-
-	return p.validate(*token)
+	return t.Chain2[Token, Token](
+		newMessage(V3Local, tainted)).
+		AndThen(func(m message) t.Result[Token] { return m.v3Decrypt(key, implicit) }).
+		AndThen(p.validate).
+		Results()
 }
 
 // ParseV3Public will parse and verify a v3 public paseto and validate against
 // any parser rules. Error if parsing, verification, or any rule fails.
 func (p Parser) ParseV3Public(key V3AsymmetricPublicKey, tainted string, implicit []byte) (*Token, error) {
-	message, err := newMessage(V3Public, tainted)
-	if err != nil {
-		return nil, err
-	}
-
-	token, err := message.v3Verify(key, implicit)
-	if err != nil {
-		return nil, err
-	}
-
-	return p.validate(*token)
+	return t.Chain2[Token, Token](
+		newMessage(V3Public, tainted)).
+		AndThen(func(m message) t.Result[Token] { return m.v3Verify(key, implicit) }).
+		AndThen(p.validate).
+		Results()
 }
 
 // ParseV4Local will parse and decrypt a v4 local paseto and validate against
 // any parser rules. Error if parsing, decryption, or any rule fails.
 func (p Parser) ParseV4Local(key V4SymmetricKey, tainted string, implicit []byte) (*Token, error) {
-	message, err := newMessage(V4Local, tainted)
-	if err != nil {
-		return nil, err
-	}
-
-	token, err := message.v4Decrypt(key, implicit)
-	if err != nil {
-		return nil, err
-	}
-
-	return p.validate(*token)
+	return t.Chain2[Token, Token](
+		newMessage(V4Local, tainted)).
+		AndThen(func(m message) t.Result[Token] { return m.v4Decrypt(key, implicit) }).
+		AndThen(p.validate).
+		Results()
 }
 
 // ParseV4Public will parse and verify a v4 public paseto and validate against
 // any parser rules. Error if parsing, verification, or any rule fails.
 func (p Parser) ParseV4Public(key V4AsymmetricPublicKey, tainted string, implicit []byte) (*Token, error) {
-	message, err := newMessage(V4Public, tainted)
-	if err != nil {
-		return nil, err
-	}
-
-	token, err := message.v4Verify(key, implicit)
-	if err != nil {
-		return nil, err
-	}
-
-	return p.validate(*token)
+	return t.Chain2[Token, Token](
+		newMessage(V4Public, tainted)).
+		AndThen(func(m message) t.Result[Token] { return m.v4Verify(key, implicit) }).
+		AndThen(p.validate).
+		Results()
 }
 
 // UnsafeParseFooter returns the footer of a Paseto message. Beware that this
 // footer is not cryptographically verified at this stage, nor are any claims
 // validated.
 func (p Parser) UnsafeParseFooter(protocol Protocol, tainted string) ([]byte, error) {
-	message, err := newMessage(protocol, tainted)
-	if err != nil {
-		return nil, err
-	}
-
-	return message.unsafeFooter(), nil
+	return t.Chain[[]byte](
+		newMessage(protocol, tainted)).
+		Map(message.unsafeFooter).
+		UnwrappedResults()
 }
 
 // SetRules will overwrite any currently set rules with those specified.
@@ -149,12 +113,12 @@ func (p *Parser) AddRule(rule ...Rule) {
 	p.rules = append(p.rules, rule...)
 }
 
-func (p Parser) validate(token Token) (*Token, error) {
+func (p Parser) validate(token Token) t.Result[Token] {
 	for _, rule := range p.rules {
 		if err := rule(token); err != nil {
-			return nil, &RuleError{err}
+			return t.Err[Token](newRuleError(err))
 		}
 	}
 
-	return &token, nil
+	return t.Ok(token)
 }

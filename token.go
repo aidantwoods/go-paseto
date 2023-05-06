@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	t "aidanwoods.dev/go-result"
 )
 
 // Token is a set of paseto claims, and a footer
@@ -46,15 +48,15 @@ func NewTokenFromClaimsJSON(claimsData []byte, footer []byte) (*Token, error) {
 // Set sets the key with the specified value. Note that this value needs to
 // be serialisable to JSON using encoding/json.
 // Set will check this and return an error if it is not serialisable.
-func (t *Token) Set(key string, value interface{}) error {
-	v, err := newTokenValue(value)
-	if err != nil {
-		return fmt.Errorf("could not set key `%s': %w", key, err)
-	}
-
-	t.claims[key] = *v
-
-	return nil
+func (token *Token) Set(key string, value interface{}) error {
+	return t.Chain[any](
+		marshalTokenValue(value)).
+		AndThen(func(value tokenValue) t.Result[any] {
+			token.claims[key] = value
+			return t.Ok[any](nil)
+		}).
+		WrapErr("could not set key `" + key + "': %w").
+		UnwrapErrOr(nil)
 }
 
 // Get gets the given key and writes the value into output (which should be a
@@ -129,13 +131,11 @@ func (t Token) Claims() map[string]interface{} {
 }
 
 // ClaimsJSON gets the stored claims as JSON.
-func (t Token) ClaimsJSON() []byte {
-	data, err := json.Marshal(t.Claims())
-	if err != nil {
-		// these were *just* unmarshalled (and a top level of string keys added)
-		// it is *very* unexpected if this is not reversable
-		panic(err)
-	}
+func (token Token) ClaimsJSON() []byte {
+	// these were *just* unmarshalled (and a top level of string keys added)
+	// it is *very* unexpected if this is not reversable
+	data := t.NewResult(json.Marshal(token.Claims())).
+		Expect("internal claims data should be well formed JSON")
 
 	return data
 }
@@ -206,11 +206,10 @@ type tokenValue struct {
 	rawValue []byte
 }
 
-func newTokenValue(value interface{}) (*tokenValue, error) {
-	bytes, err := json.Marshal(value)
-	if err != nil {
-		return nil, err
-	}
+func newTokenValue(bytes []byte) tokenValue {
+	return tokenValue{bytes}
+}
 
-	return &tokenValue{bytes}, nil
+func marshalTokenValue(value interface{}) t.Result[tokenValue] {
+	return t.Map(t.NewResult(json.Marshal(value)), newTokenValue)
 }

@@ -3,15 +3,13 @@ package random
 import (
 	"crypto/rand"
 	"io"
+
+	t "aidanwoods.dev/go-result"
 )
 
 // FillBytes fills out with random bytes from the OS CSPRNG, or panics
 func FillBytes(out []byte) {
-	_, err := io.ReadFull(rand.Reader, out[:])
-
-	if err != nil {
-		panic("CSPRNG failure")
-	}
+	t.NewResult(io.ReadFull(rand.Reader, out[:])).Expect("CSPRNG failure")
 }
 
 // UseProvidedOrFillBytes will fill `out' with unitTestNonce, provided it is

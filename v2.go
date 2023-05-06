@@ -6,6 +6,7 @@ import (
 	"aidanwoods.dev/go-paseto/internal/encoding"
 	"aidanwoods.dev/go-paseto/internal/hashing"
 	"aidanwoods.dev/go-paseto/internal/random"
+	t "aidanwoods.dev/go-result"
 	"golang.org/x/crypto/chacha20poly1305"
 )
 
@@ -24,13 +25,13 @@ func v2PublicSign(packet packet, key V2AsymmetricSecretKey) message {
 	var signature [64]byte
 	copy(signature[:], sig)
 
-	return newMessageFromPayload(v2PublicPayload{data, signature}, footer)
+	return newMessageFromPayloadAndFooter(v2PublicPayload{data, signature}, footer)
 }
 
-func v2PublicVerify(msg message, key V2AsymmetricPublicKey) (packet, error) {
+func v2PublicVerify(msg message, key V2AsymmetricPublicKey) t.Result[packet] {
 	payload, ok := msg.p.(v2PublicPayload)
 	if msg.header() != V2Public.Header() || !ok {
-		return packet{}, errorMessageHeaderVerify(V2Public, msg.header())
+		return t.Err[packet](errorMessageHeaderVerify(V2Public, msg.header()))
 	}
 
 	header, footer := []byte(msg.header()), msg.footer
@@ -39,10 +40,10 @@ func v2PublicVerify(msg message, key V2AsymmetricPublicKey) (packet, error) {
 	m2 := encoding.Pae(header, data, footer)
 
 	if !ed25519.Verify(key.material, m2, payload.signature[:]) {
-		return packet{}, errorBadSignature
+		return t.Err[packet](errorBadSignature)
 	}
 
-	return packet{data, footer}, nil
+	return t.Ok(packet{data, footer})
 }
 
 func v2LocalEncrypt(p packet, key V2SymmetricKey, unitTestNonce []byte) message {
@@ -52,10 +53,8 @@ func v2LocalEncrypt(p packet, key V2SymmetricKey, unitTestNonce []byte) message 
 	var nonce [24]byte
 	hashing.GenericHash(p.content, nonce[:], b[:])
 
-	cipher, err := chacha20poly1305.NewX(key.material[:])
-	if err != nil {
-		panic("Cannot construct cipher")
-	}
+	cipher := t.NewResult(chacha20poly1305.NewX(key.material[:])).
+		Expect("constructing cipher should not fail")
 
 	header := []byte(V2Local.Header())
 
@@ -63,13 +62,13 @@ func v2LocalEncrypt(p packet, key V2SymmetricKey, unitTestNonce []byte) message 
 
 	cipherText := cipher.Seal(nil, nonce[:], p.content, preAuth)
 
-	return newMessageFromPayload(v2LocalPayload{nonce, cipherText}, p.footer)
+	return newMessageFromPayloadAndFooter(v2LocalPayload{nonce, cipherText}, p.footer)
 }
 
-func v2LocalDecrypt(msg message, key V2SymmetricKey) (packet, error) {
+func v2LocalDecrypt(msg message, key V2SymmetricKey) t.Result[packet] {
 	payload, ok := msg.p.(v2LocalPayload)
 	if msg.header() != V2Local.Header() || !ok {
-		return packet{}, errorMessageHeaderDecrypt(V2Local, msg.header())
+		return t.Err[packet](errorMessageHeaderDecrypt(V2Local, msg.header()))
 	}
 
 	nonce, cipherText := payload.nonce, payload.cipherText
@@ -78,15 +77,13 @@ func v2LocalDecrypt(msg message, key V2SymmetricKey) (packet, error) {
 
 	preAuth := encoding.Pae(header, nonce[:], msg.footer)
 
-	cipher, err := chacha20poly1305.NewX(key.material[:])
-	if err != nil {
-		panic("Cannot construct cipher")
+	cipher := t.NewResult(chacha20poly1305.NewX(key.material[:])).
+		Expect("constructing cipher should not fail")
+
+	var plaintext []byte
+	if err := t.NewResult(cipher.Open(nil, nonce[:], cipherText, preAuth)).Ok(&plaintext); err != nil {
+		return t.Err[packet](errorDecrypt(err))
 	}
 
-	plainText, err := cipher.Open(nil, nonce[:], cipherText, preAuth)
-	if err != nil {
-		return packet{}, errorDecrypt(err)
-	}
-
-	return packet{plainText, msg.footer}, nil
+	return t.Ok(packet{plaintext, msg.footer})
 }

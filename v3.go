@@ -11,6 +11,7 @@ import (
 
 	"aidanwoods.dev/go-paseto/internal/encoding"
 	"aidanwoods.dev/go-paseto/internal/random"
+	t "aidanwoods.dev/go-result"
 )
 
 func v3PublicSign(packet packet, key V3AsymmetricSecretKey, implicit []byte) message {
@@ -21,10 +22,9 @@ func v3PublicSign(packet packet, key V3AsymmetricSecretKey, implicit []byte) mes
 
 	hash := sha512.Sum384(m2)
 
-	r, s, err := ecdsa.Sign(rand.Reader, &key.material, hash[:])
-	if err != nil {
-		panic("Failed to sign")
-	}
+	r, s := t.NewTupleResult(ecdsa.Sign(rand.Reader, &key.material, hash[:])).
+		Expect("sign should always succeed").
+		Destructure()
 
 	var rBytes [48]byte
 	var sBytes [48]byte
@@ -41,13 +41,13 @@ func v3PublicSign(packet packet, key V3AsymmetricSecretKey, implicit []byte) mes
 	var signature [96]byte
 	copy(signature[:], sig)
 
-	return newMessageFromPayload(v3PublicPayload{data, signature}, footer)
+	return newMessageFromPayloadAndFooter(v3PublicPayload{data, signature}, footer)
 }
 
-func v3PublicVerify(msg message, key V3AsymmetricPublicKey, implicit []byte) (packet, error) {
+func v3PublicVerify(msg message, key V3AsymmetricPublicKey, implicit []byte) t.Result[packet] {
 	payload, ok := msg.p.(v3PublicPayload)
 	if msg.header() != V3Public.Header() || !ok {
-		return packet{}, errorMessageHeaderVerify(V3Public, msg.header())
+		return t.Err[packet](errorMessageHeaderVerify(V3Public, msg.header()))
 	}
 
 	header, footer := []byte(msg.header()), msg.footer
@@ -61,10 +61,10 @@ func v3PublicVerify(msg message, key V3AsymmetricPublicKey, implicit []byte) (pa
 	s := new(big.Int).SetBytes(payload.signature[48:])
 
 	if !ecdsa.Verify(&key.material, hash[:], r, s) {
-		return packet{}, errorBadSignature
+		return t.Err[packet](errorBadSignature)
 	}
 
-	return packet{data, footer}, nil
+	return t.Ok(packet{data, footer})
 }
 
 func v3LocalEncrypt(p packet, key V3SymmetricKey, implicit []byte, unitTestNonce []byte) message {
@@ -73,10 +73,8 @@ func v3LocalEncrypt(p packet, key V3SymmetricKey, implicit []byte, unitTestNonce
 
 	encKey, authKey, nonce2 := key.split(nonce)
 
-	blockCipher, err := aes.NewCipher(encKey[:])
-	if err != nil {
-		panic("Cannot construct cipher")
-	}
+	blockCipher := t.NewResult(aes.NewCipher(encKey[:])).
+		Expect("cipher should construct")
 
 	cipherText := make([]byte, len(p.content))
 	cipher.NewCTR(blockCipher, nonce2[:]).XORKeyStream(cipherText, p.content)
@@ -86,19 +84,18 @@ func v3LocalEncrypt(p packet, key V3SymmetricKey, implicit []byte, unitTestNonce
 	preAuth := encoding.Pae(header, nonce[:], cipherText, p.footer, implicit)
 
 	hm := hmac.New(sha512.New384, authKey[:])
-	if _, err := hm.Write(preAuth); err != nil {
-		panic(err)
-	}
+	t.NewResult(hm.Write(preAuth)).Expect("hmac write should succeed")
+
 	var tag [48]byte
 	copy(tag[:], hm.Sum(nil))
 
-	return newMessageFromPayload(v3LocalPayload{nonce, cipherText, tag}, p.footer)
+	return newMessageFromPayloadAndFooter(v3LocalPayload{nonce, cipherText, tag}, p.footer)
 }
 
-func v3LocalDecrypt(msg message, key V3SymmetricKey, implicit []byte) (packet, error) {
+func v3LocalDecrypt(msg message, key V3SymmetricKey, implicit []byte) t.Result[packet] {
 	payload, ok := msg.p.(v3LocalPayload)
 	if msg.header() != V3Local.Header() || !ok {
-		return packet{}, errorMessageHeaderDecrypt(V3Local, msg.header())
+		return t.Err[packet](errorMessageHeaderDecrypt(V3Local, msg.header()))
 	}
 
 	nonce, cipherText, givenTag := payload.nonce, payload.cipherText, payload.tag
@@ -109,24 +106,20 @@ func v3LocalDecrypt(msg message, key V3SymmetricKey, implicit []byte) (packet, e
 	preAuth := encoding.Pae(header, nonce[:], cipherText, msg.footer, implicit)
 
 	hm := hmac.New(sha512.New384, authKey[:])
-	if _, err := hm.Write(preAuth); err != nil {
-		panic(err)
-	}
+	t.NewResult(hm.Write(preAuth)).Expect("hmac write should succeed")
+
 	var expectedTag [48]byte
 	copy(expectedTag[:], hm.Sum(nil))
 
 	if !hmac.Equal(expectedTag[:], givenTag[:]) {
-		var p packet
-		return p, errorBadMAC
+		return t.Err[packet](errorBadMAC)
 	}
 
-	blockCipher, err := aes.NewCipher(encKey[:])
-	if err != nil {
-		panic("Cannot construct cipher")
-	}
+	blockCipher := t.NewResult(aes.NewCipher(encKey[:])).
+		Expect("cipher should construct")
 
 	plainText := make([]byte, len(cipherText))
 	cipher.NewCTR(blockCipher, nonce2[:]).XORKeyStream(plainText, cipherText)
 
-	return packet{plainText, msg.footer}, nil
+	return t.Ok(packet{plainText, msg.footer})
 }

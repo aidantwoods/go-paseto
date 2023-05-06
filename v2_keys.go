@@ -4,7 +4,9 @@ import (
 	"crypto/ed25519"
 	"encoding/hex"
 
+	"aidanwoods.dev/go-paseto/internal/encoding"
 	"aidanwoods.dev/go-paseto/internal/random"
+	t "aidanwoods.dev/go-result"
 )
 
 // V2AsymmetricPublicKey V2 public public key
@@ -14,8 +16,8 @@ type V2AsymmetricPublicKey struct {
 
 // NewV2AsymmetricPublicKeyFromHex Construct a v2 public key from hex
 func NewV2AsymmetricPublicKeyFromHex(hexEncoded string) (V2AsymmetricPublicKey, error) {
-	publicKey, err := hex.DecodeString(hexEncoded)
-	if err != nil {
+	var publicKey []byte
+	if err := encoding.HexDecode(hexEncoded).Ok(&publicKey); err != nil {
 		// even though we return error, return a random key here rather than
 		// a nil key
 		return NewV2AsymmetricSecretKey().Public(), err
@@ -37,7 +39,7 @@ func NewV2AsymmetricPublicKeyFromBytes(publicKey []byte) (V2AsymmetricPublicKey,
 
 // ExportHex export a V2AsymmetricPublicKey to hex for storage
 func (k V2AsymmetricPublicKey) ExportHex() string {
-	return hex.EncodeToString(k.ExportBytes())
+	return encoding.HexEncode(k.ExportBytes())
 }
 
 // ExportBytes export a V2AsymmetricPublicKey to raw byte array
@@ -52,18 +54,15 @@ type V2AsymmetricSecretKey struct {
 
 // Public returns the corresponding public key for a secret key
 func (k V2AsymmetricSecretKey) Public() V2AsymmetricPublicKey {
-	material, ok := k.material.Public().(ed25519.PublicKey)
-
-	if !ok {
-		panic("Wrong public key returned")
+	return V2AsymmetricPublicKey{
+		material: t.Cast[ed25519.PublicKey](k.material.Public()).
+			Expect("wrong public key returned"),
 	}
-
-	return V2AsymmetricPublicKey{material}
 }
 
 // ExportHex export a V2AsymmetricSecretKey to hex for storage
 func (k V2AsymmetricSecretKey) ExportHex() string {
-	return hex.EncodeToString(k.ExportBytes())
+	return encoding.HexEncode(k.ExportBytes())
 }
 
 // ExportBytes export a V2AsymmetricSecretKey to raw byte array
@@ -73,27 +72,24 @@ func (k V2AsymmetricSecretKey) ExportBytes() []byte {
 
 // ExportSeedHex export a V2AsymmetricSecretKey's seed to hex for storage
 func (k V2AsymmetricSecretKey) ExportSeedHex() string {
-	return hex.EncodeToString(k.material.Seed())
+	return encoding.HexEncode(k.material.Seed())
 }
 
 // NewV2AsymmetricSecretKey generate a new secret key for use with asymmetric
 // cryptography. Don't forget to export the public key for sharing, DO NOT share
 // this secret key.
 func NewV2AsymmetricSecretKey() V2AsymmetricSecretKey {
-	_, privateKey, err := ed25519.GenerateKey(nil)
-
-	if err != nil {
-		panic("CSPRNG failure")
+	return V2AsymmetricSecretKey{
+		material: t.NewTupleResult(ed25519.GenerateKey(nil)).
+			Expect("CSPRNG should not fail").
+			Second,
 	}
-
-	return V2AsymmetricSecretKey{privateKey}
 }
 
 // NewV2AsymmetricSecretKeyFromHex creates a secret key from hex
 func NewV2AsymmetricSecretKeyFromHex(hexEncoded string) (V2AsymmetricSecretKey, error) {
-	privateKey, err := hex.DecodeString(hexEncoded)
-
-	if err != nil {
+	var privateKey []byte
+	if err := encoding.HexDecode(hexEncoded).Ok(&privateKey); err != nil {
 		// even though we return error, return a random key here rather than
 		// a nil key
 		return NewV2AsymmetricSecretKey(), err
@@ -123,9 +119,8 @@ func NewV2AsymmetricSecretKeyFromBytes(privateKey []byte) (V2AsymmetricSecretKey
 
 // NewV2AsymmetricSecretKeyFromSeed creates a secret key from a seed (hex)
 func NewV2AsymmetricSecretKeyFromSeed(hexEncoded string) (V2AsymmetricSecretKey, error) {
-	seedBytes, err := hex.DecodeString(hexEncoded)
-
-	if err != nil {
+	var seedBytes []byte
+	if err := encoding.HexDecode(hexEncoded).Ok(&seedBytes); err != nil {
 		// even though we return error, return a random key here rather than
 		// a nil key
 		return NewV2AsymmetricSecretKey(), err
@@ -165,8 +160,8 @@ func (k V2SymmetricKey) ExportBytes() []byte {
 
 // V2SymmetricKeyFromHex constructs a key from hex
 func V2SymmetricKeyFromHex(hexEncoded string) (V2SymmetricKey, error) {
-	bytes, err := hex.DecodeString(hexEncoded)
-	if err != nil {
+	var bytes []byte
+	if err := encoding.HexDecode(hexEncoded).Ok(&bytes); err != nil {
 		// even though we return error, return a random key here rather than
 		// a nil key
 		return NewV2SymmetricKey(), err
