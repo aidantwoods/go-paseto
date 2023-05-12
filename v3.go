@@ -14,8 +14,8 @@ import (
 	t "aidanwoods.dev/go-result"
 )
 
-func v3PublicSign(packet packet, key V3AsymmetricSecretKey, implicit []byte) message {
-	data, footer := packet.content, packet.footer
+func v3PublicSign(packet ClaimsAndFooter, key V3AsymmetricSecretKey, implicit []byte) message {
+	data, footer := packet.Claims, packet.Footer
 	header := []byte(V3Public.Header())
 
 	m2 := encoding.Pae(key.Public().compressed(), header, data, footer, implicit)
@@ -44,10 +44,10 @@ func v3PublicSign(packet packet, key V3AsymmetricSecretKey, implicit []byte) mes
 	return newMessageFromPayloadAndFooter(v3PublicPayload{data, signature}, footer)
 }
 
-func v3PublicVerify(msg message, key V3AsymmetricPublicKey, implicit []byte) t.Result[packet] {
+func v3PublicVerify(msg message, key V3AsymmetricPublicKey, implicit []byte) t.Result[ClaimsAndFooter] {
 	payload, ok := msg.p.(v3PublicPayload)
 	if msg.header() != V3Public.Header() || !ok {
-		return t.Err[packet](errorMessageHeaderVerify(V3Public, msg.header()))
+		return t.Err[ClaimsAndFooter](errorMessageHeaderVerify(V3Public, msg.header()))
 	}
 
 	header, footer := []byte(msg.header()), msg.footer
@@ -61,13 +61,13 @@ func v3PublicVerify(msg message, key V3AsymmetricPublicKey, implicit []byte) t.R
 	s := new(big.Int).SetBytes(payload.signature[48:])
 
 	if !ecdsa.Verify(&key.material, hash[:], r, s) {
-		return t.Err[packet](errorBadSignature)
+		return t.Err[ClaimsAndFooter](errorBadSignature)
 	}
 
-	return t.Ok(packet{data, footer})
+	return t.Ok(ClaimsAndFooter{data, footer})
 }
 
-func v3LocalEncrypt(p packet, key V3SymmetricKey, implicit []byte, unitTestNonce []byte) message {
+func v3LocalEncrypt(p ClaimsAndFooter, key V3SymmetricKey, implicit []byte, unitTestNonce []byte) message {
 	var nonce [32]byte
 	random.UseProvidedOrFillBytes(unitTestNonce, nonce[:])
 
@@ -76,12 +76,12 @@ func v3LocalEncrypt(p packet, key V3SymmetricKey, implicit []byte, unitTestNonce
 	blockCipher := t.NewResult(aes.NewCipher(encKey[:])).
 		Expect("cipher should construct")
 
-	cipherText := make([]byte, len(p.content))
-	cipher.NewCTR(blockCipher, nonce2[:]).XORKeyStream(cipherText, p.content)
+	cipherText := make([]byte, len(p.Claims))
+	cipher.NewCTR(blockCipher, nonce2[:]).XORKeyStream(cipherText, p.Claims)
 
 	header := []byte(V3Local.Header())
 
-	preAuth := encoding.Pae(header, nonce[:], cipherText, p.footer, implicit)
+	preAuth := encoding.Pae(header, nonce[:], cipherText, p.Footer, implicit)
 
 	hm := hmac.New(sha512.New384, authKey[:])
 	t.NewResult(hm.Write(preAuth)).Expect("hmac write should succeed")
@@ -89,13 +89,13 @@ func v3LocalEncrypt(p packet, key V3SymmetricKey, implicit []byte, unitTestNonce
 	var tag [48]byte
 	copy(tag[:], hm.Sum(nil))
 
-	return newMessageFromPayloadAndFooter(v3LocalPayload{nonce, cipherText, tag}, p.footer)
+	return newMessageFromPayloadAndFooter(v3LocalPayload{nonce, cipherText, tag}, p.Footer)
 }
 
-func v3LocalDecrypt(msg message, key V3SymmetricKey, implicit []byte) t.Result[packet] {
+func v3LocalDecrypt(msg message, key V3SymmetricKey, implicit []byte) t.Result[ClaimsAndFooter] {
 	payload, ok := msg.p.(v3LocalPayload)
 	if msg.header() != V3Local.Header() || !ok {
-		return t.Err[packet](errorMessageHeaderDecrypt(V3Local, msg.header()))
+		return t.Err[ClaimsAndFooter](errorMessageHeaderDecrypt(V3Local, msg.header()))
 	}
 
 	nonce, cipherText, givenTag := payload.nonce, payload.cipherText, payload.tag
@@ -112,7 +112,7 @@ func v3LocalDecrypt(msg message, key V3SymmetricKey, implicit []byte) t.Result[p
 	copy(expectedTag[:], hm.Sum(nil))
 
 	if !hmac.Equal(expectedTag[:], givenTag[:]) {
-		return t.Err[packet](errorBadMAC)
+		return t.Err[ClaimsAndFooter](errorBadMAC)
 	}
 
 	blockCipher := t.NewResult(aes.NewCipher(encKey[:])).
@@ -121,5 +121,5 @@ func v3LocalDecrypt(msg message, key V3SymmetricKey, implicit []byte) t.Result[p
 	plainText := make([]byte, len(cipherText))
 	cipher.NewCTR(blockCipher, nonce2[:]).XORKeyStream(plainText, cipherText)
 
-	return t.Ok(packet{plainText, msg.footer})
+	return t.Ok(ClaimsAndFooter{plainText, msg.footer})
 }

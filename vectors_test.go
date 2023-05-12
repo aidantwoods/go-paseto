@@ -90,8 +90,8 @@ func TestV2(t *testing.T) {
 				decoded.Expect("decoded should be present")
 			}
 
-			require.Equal(t, test.Payload, string(decoded.Unwrap().Content()))
-			require.Equal(t, test.Footer, string(decoded.Unwrap().Footer()))
+			require.Equal(t, test.Payload, string(decoded.Unwrap().Claims))
+			require.Equal(t, test.Footer, string(decoded.Unwrap().Footer))
 
 			packet := paseto.NewPacket([]byte(test.Payload), []byte(test.Footer))
 
@@ -183,8 +183,8 @@ func TestV3(t *testing.T) {
 				decoded.Expect("decoded should be present")
 			}
 
-			require.Equal(t, test.Payload, string(decoded.Unwrap().Content()))
-			require.Equal(t, test.Footer, string(decoded.Unwrap().Footer()))
+			require.Equal(t, test.Payload, string(decoded.Unwrap().Claims))
+			require.Equal(t, test.Footer, string(decoded.Unwrap().Footer))
 
 			packet := paseto.NewPacket([]byte(test.Payload), []byte(test.Footer))
 			implicit := []byte(test.ImplicitAssertation)
@@ -218,8 +218,8 @@ func TestV3(t *testing.T) {
 				decoded = paseto.V3PublicVerify(signed, pk, []byte(test.ImplicitAssertation))
 				require.NoError(t, err)
 
-				require.Equal(t, test.Payload, string(decoded.Unwrap().Content()))
-				require.Equal(t, test.Footer, string(decoded.Unwrap().Footer()))
+				require.Equal(t, test.Payload, string(decoded.Unwrap().Claims))
+				require.Equal(t, test.Footer, string(decoded.Unwrap().Footer))
 			}
 		})
 	}
@@ -292,8 +292,8 @@ func TestV4(t *testing.T) {
 				decoded.Expect("decoded should be present")
 			}
 
-			require.Equal(t, test.Payload, string(decoded.Unwrap().Content()))
-			require.Equal(t, test.Footer, string(decoded.Unwrap().Footer()))
+			require.Equal(t, test.Payload, string(decoded.Unwrap().Claims))
+			require.Equal(t, test.Footer, string(decoded.Unwrap().Footer))
 
 			packet := paseto.NewPacket([]byte(test.Payload), []byte(test.Footer))
 			implicit := []byte(test.ImplicitAssertation)
