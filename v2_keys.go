@@ -52,6 +52,13 @@ func (k V2AsymmetricPublicKey) ExportBytes() []byte {
 	return k.material
 }
 
+func (k V2AsymmetricPublicKey) Version() KeyVersion {
+	return 2
+}
+func (k V2AsymmetricPublicKey) Type() KeyType {
+	return KeyTypePublic
+}
+
 // V2AsymmetricSecretKey V2 public private key
 type V2AsymmetricSecretKey struct {
 	material ed25519.PrivateKey
@@ -78,6 +85,13 @@ func (k V2AsymmetricSecretKey) ExportBytes() []byte {
 // ExportSeedHex export a V2AsymmetricSecretKey's seed to hex for storage
 func (k V2AsymmetricSecretKey) ExportSeedHex() string {
 	return encoding.HexEncode(k.material.Seed())
+}
+
+func (k V2AsymmetricSecretKey) Version() KeyVersion {
+	return 2
+}
+func (k V2AsymmetricSecretKey) Type() KeyType {
+	return KeyTypeSecret
 }
 
 // NewV2AsymmetricSecretKey generate a new secret key for use with asymmetric
@@ -166,6 +180,13 @@ func (k V2SymmetricKey) ExportHex() string {
 // ExportBytes exports the key as raw bytes
 func (k V2SymmetricKey) ExportBytes() []byte {
 	return k.material[:]
+}
+
+func (k V2SymmetricKey) Version() KeyVersion {
+	return 2
+}
+func (k V2SymmetricKey) Type() KeyType {
+	return KeyTypeLocal
 }
 
 // V2SymmetricKeyFromHex constructs a key from hex
