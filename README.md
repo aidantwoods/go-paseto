@@ -57,7 +57,7 @@ key := paseto.NewV4SymmetricKey() // don't share this!!
 encrypted := token.V4Encrypt(key, nil)
 ```
 
-Or sign it (this allows recievers to verify it without sharing secrets):
+Or sign it (this allows receivers to verify it without sharing secrets):
 ```go
 
 secretKey := paseto.NewV4AsymmetricSecretKey() // don't share this!!!
@@ -66,7 +66,12 @@ publicKey := secretKey.Public() // DO share this one
 signed := token.V4Sign(secretKey, nil)
 ```
 
-To handle a recieved token, let's use an example from Paseto's test vectors:
+When handing out the public key, you may want to encode it using [PASERK](https://github.com/paseto-standard/paserk), so it can't be misinterpreted as key for a different type or version:
+```go
+println(paserk.SerializeKey(publicKey))
+```
+
+To handle a received token, let's use an example from Paseto's test vectors:
 
 The Paseto token is as follows
 ```
@@ -78,10 +83,17 @@ And the public key, given in hex is:
 1eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2
 ```
 
+Alternatively, the same public key as PASERK:
+```
+k4.public.Hrnbu7wEfAP9cGBOAHHwmH4Wsot1ciXBHwBBXQ4gsaI
+```
+
 Importing a public key, and then verifying a token:
 
 ```go
 publicKey, err := paseto.NewV4AsymmetricPublicKeyFromHex("1eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2") // this wil fail if given key in an invalid format
+// or when the public key is given as PASERK:
+publicKey, err := paserk.DeserializeKey[paseto.V4AsymmetricPublicKey]("k4.public.Hrnbu7wEfAP9cGBOAHHwmH4Wsot1ciXBHwBBXQ4gsaI")
 signed := "v4.public.eyJkYXRhIjoidGhpcyBpcyBhIHNpZ25lZCBtZXNzYWdlIiwiZXhwIjoiMjAyMi0wMS0wMVQwMDowMDowMCswMDowMCJ9v3Jt8mx_TdM2ceTGoqwrh4yDFn0XsHvvV_D0DtwQxVrJEBMl0F2caAdgnpKlt4p7xBnx1HcO-SPo8FPp214HDw.eyJraWQiOiJ6VmhNaVBCUDlmUmYyc25FY1Q3Z0ZUaW9lQTlDT2NOeTlEZmdMMVc2MGhhTiJ9"
 
 parser := paseto.NewParserWithoutExpiryCheck() // only used because this example token has expired, use NewParser() (which checks expiry by default)
@@ -98,6 +110,8 @@ require.Equal(t,
 )
 require.NoError(t, err)
 ```
+
+
 
 # Supported Claims Validators
 The following validators are supported:
@@ -162,6 +176,14 @@ Version 4 is fully supported.
 Version 3 is fully supported.
 ## Version 2
 Version 2 is fully supported.
+
+# Supported PASERK Types
+
+Key serialization and deserialization (`local`, `secret`, `public`) is supported, so is creating key identifiers (`lid`, `sid`, `pid`).
+
+Wrapped/encrypted keys are **not** supported (`seal`, `local-wrap`, `local-pw`, `secret-wrap`, `secret-pw`).
+
+See the [PASERK documentation](https://github.com/paseto-standard/paserk) for what these mean.
 
 # Supported Go Versions
 Only [officially supported](https://go.dev/doc/devel/release#policy) versions of Go will be
