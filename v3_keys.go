@@ -60,6 +60,13 @@ func (k V3AsymmetricPublicKey) ExportBytes() []byte {
 	return k.compressed()
 }
 
+func (k V3AsymmetricPublicKey) Version() KeyVersion {
+	return 3
+}
+func (k V3AsymmetricPublicKey) Type() KeyType {
+	return KeyTypePublic
+}
+
 // V3AsymmetricSecretKey v3 public private key
 type V3AsymmetricSecretKey struct {
 	material ecdsa.PrivateKey
@@ -78,6 +85,13 @@ func (k V3AsymmetricSecretKey) ExportHex() string {
 // ExportBytes export a V3AsymmetricSecretKey to raw byte array
 func (k V3AsymmetricSecretKey) ExportBytes() []byte {
 	return k.material.D.Bytes()
+}
+
+func (k V3AsymmetricSecretKey) Version() KeyVersion {
+	return 3
+}
+func (k V3AsymmetricSecretKey) Type() KeyType {
+	return KeyTypeSecret
 }
 
 // NewV3AsymmetricSecretKey generate a new secret key for use with asymmetric
@@ -143,6 +157,14 @@ func (k V3SymmetricKey) ExportHex() string {
 // ExportBytes exports the key as raw byte array
 func (k V3SymmetricKey) ExportBytes() []byte {
 	return k.material[:]
+}
+
+func (k V3SymmetricKey) Version() KeyVersion {
+	return 3
+}
+
+func (k V3SymmetricKey) Type() KeyType {
+	return KeyTypeLocal
 }
 
 // V3SymmetricKeyFromHex constructs a key from hex
