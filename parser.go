@@ -100,7 +100,7 @@ func (p Parser) UnsafeParseFooter(protocol Protocol, tainted string) ([]byte, er
 	return t.Chain[[]byte](
 		newMessage(protocol, tainted)).
 		Map(message.unsafeFooter).
-		UnwrappedResults()
+		ResultsMappingEmpty()
 }
 
 // SetRules will overwrite any currently set rules with those specified.
