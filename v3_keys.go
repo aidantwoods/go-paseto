@@ -46,6 +46,38 @@ func NewV3AsymmetricPublicKeyFromBytes(publicKeyBytes []byte) (V3AsymmetricPubli
 	return V3AsymmetricPublicKey{*publicKey}, nil
 }
 
+// NewV3AsymmetricPublicKeyFromEcdsa Construct a v3 public key from a standard Go object
+func NewV3AsymmetricPublicKeyFromEcdsa(publicKey ecdsa.PublicKey) (V3AsymmetricPublicKey, error) {
+	if publicKey.Curve != elliptic.P384() {
+		// even though we return error, return a random key here rather than
+		// a nil key
+		return NewV3AsymmetricSecretKey().Public(), errorKeyWrongCurve
+	}
+
+	// Compress the key for the expected curve and go through the compressed point initialiser
+	// This guarantees the result we get is on the curve.
+	parsedPubKey, err := NewV3AsymmetricPublicKeyFromBytes(elliptic.MarshalCompressed(
+		elliptic.P384(),
+		publicKey.X,
+		publicKey.Y,
+	))
+	if err != nil {
+		// even though we return error, return a random key here rather than
+		// a nil key
+		return parsedPubKey, err
+	}
+
+	// If somehow the key is different after going through the compressed initialiser, something
+	// has gone very wrong.
+	if !publicKey.Equal(&parsedPubKey.material) {
+		// even though we return error, return a random key here rather than
+		// a nil key
+		return NewV3AsymmetricSecretKey().Public(), errorKeyInvalid
+	}
+
+	return parsedPubKey, nil
+}
+
 func (k V3AsymmetricPublicKey) compressed() []byte {
 	return elliptic.MarshalCompressed(elliptic.P384(), k.material.X, k.material.Y)
 }
@@ -120,6 +152,25 @@ func NewV3AsymmetricSecretKeyFromBytes(secretBytes []byte) (V3AsymmetricSecretKe
 	privateKey.PublicKey = *publicKey
 
 	return V3AsymmetricSecretKey{*privateKey}, nil
+}
+
+// NewV3AsymmetricSecretKeyFromBytes creates a secret key from a standard Go object
+func NewV3AsymmetricSecretKeyFromEcdsa(privateKey ecdsa.PrivateKey) (V3AsymmetricSecretKey, error) {
+	// basic sanity check that public key is associated with key material
+	parsedPrivateKey, err := NewV3AsymmetricSecretKeyFromBytes(privateKey.D.Bytes())
+	if err != nil {
+		// even though we return error, return a random key here rather than
+		// a nil key
+		return parsedPrivateKey, err
+	}
+
+	if !privateKey.Equal(&parsedPrivateKey.material) {
+		// even though we return error, return a random key here rather than
+		// a nil key
+		return NewV3AsymmetricSecretKey(), errorKeyInvalid
+	}
+
+	return parsedPrivateKey, nil
 }
 
 // V3SymmetricKey v3 local symmetric key
