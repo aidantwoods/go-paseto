@@ -1,6 +1,10 @@
 package paseto_test
 
 import (
+	"crypto/ecdsa"
+	"crypto/ed25519"
+	"crypto/elliptic"
+	"crypto/rand"
 	"testing"
 
 	"aidanwoods.dev/go-paseto"
@@ -33,4 +37,39 @@ func TestV4AsymmetricSecretKeyImport(t *testing.T) {
 
 	_, err = paseto.NewV4AsymmetricSecretKeyFromHex(goodKey)
 	require.NoError(t, err)
+}
+
+func TestGoObjectsImports(t *testing.T) {
+	ed25519Pub, ed25519Priv, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+
+	_, err = paseto.NewV2AsymmetricPublicKeyFromEd25519(ed25519Pub)
+	require.NoError(t, err)
+	_, err = paseto.NewV2AsymmetricSecretKeyFromEd25519(ed25519Priv)
+	require.NoError(t, err)
+
+	ecdsaPriv, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
+	require.NoError(t, err)
+	ecdsaPub := ecdsaPriv.PublicKey
+
+	_, err = paseto.NewV3AsymmetricPublicKeyFromEcdsa(ecdsaPub)
+	require.NoError(t, err)
+	_, err = paseto.NewV3AsymmetricSecretKeyFromEcdsa(*ecdsaPriv)
+	require.NoError(t, err)
+
+	_, err = paseto.NewV4AsymmetricPublicKeyFromEd25519(ed25519Pub)
+	require.NoError(t, err)
+	_, err = paseto.NewV4AsymmetricSecretKeyFromEd25519(ed25519Priv)
+	require.NoError(t, err)
+}
+
+func TestBadEcdsaCurveImport(t *testing.T) {
+	ecdsaPriv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+	ecdsaPub := ecdsaPriv.PublicKey
+
+	_, err = paseto.NewV3AsymmetricPublicKeyFromEcdsa(ecdsaPub)
+	require.Error(t, err)
+	_, err = paseto.NewV3AsymmetricSecretKeyFromEcdsa(*ecdsaPriv)
+	require.Error(t, err)
 }

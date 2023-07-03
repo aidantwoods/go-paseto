@@ -61,6 +61,8 @@ func errorKeyLength(expected, given int) error {
 	return fmt.Errorf("key length incorrect (%d), expected %d", given, expected)
 }
 
+var errorKeyWrongCurve = fmt.Errorf("input key was for the wrong curve")
+
 func errorSeedLength(expected, given int) error {
 	return fmt.Errorf("seed length incorrect (%d), expected %d", given, expected)
 }

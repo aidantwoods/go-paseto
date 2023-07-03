@@ -37,6 +37,11 @@ func NewV4AsymmetricPublicKeyFromBytes(publicKey []byte) (V4AsymmetricPublicKey,
 	return V4AsymmetricPublicKey{publicKey}, nil
 }
 
+// NewV4AsymmetricPublicKeyFromEd25519 Construct a v2 public key from a standard Go object
+func NewV4AsymmetricPublicKeyFromEd25519(publicKey ed25519.PublicKey) (V4AsymmetricPublicKey, error) {
+	return NewV4AsymmetricPublicKeyFromBytes([]byte(publicKey))
+}
+
 // ExportHex export a V4AsymmetricPublicKey to hex for storage
 func (k V4AsymmetricPublicKey) ExportHex() string {
 	return encoding.HexEncode(k.ExportBytes())
@@ -126,6 +131,11 @@ func NewV4AsymmetricSecretKeyFromBytes(privateKey []byte) (V4AsymmetricSecretKey
 	}
 
 	return V4AsymmetricSecretKey{privateKey}, nil
+}
+
+// NewV4AsymmetricSecretKeyFromEd25519 creates a secret key from a standard Go object
+func NewV4AsymmetricSecretKeyFromEd25519(privateKey ed25519.PrivateKey) (V4AsymmetricSecretKey, error) {
+	return NewV4AsymmetricSecretKeyFromBytes([]byte(privateKey))
 }
 
 // NewV4AsymmetricSecretKeyFromSeed creates a secret key from a seed (hex)
