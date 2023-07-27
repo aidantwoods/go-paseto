@@ -40,27 +40,29 @@ func TestV4AsymmetricSecretKeyImport(t *testing.T) {
 }
 
 func TestGoObjectsImports(t *testing.T) {
-	ed25519Pub, ed25519Priv, err := ed25519.GenerateKey(rand.Reader)
-	require.NoError(t, err)
+	for i := 0; i < 1000; i++ {
+		ed25519Pub, ed25519Priv, err := ed25519.GenerateKey(rand.Reader)
+		require.NoError(t, err)
 
-	_, err = paseto.NewV2AsymmetricPublicKeyFromEd25519(ed25519Pub)
-	require.NoError(t, err)
-	_, err = paseto.NewV2AsymmetricSecretKeyFromEd25519(ed25519Priv)
-	require.NoError(t, err)
+		_, err = paseto.NewV2AsymmetricPublicKeyFromEd25519(ed25519Pub)
+		require.NoError(t, err)
+		_, err = paseto.NewV2AsymmetricSecretKeyFromEd25519(ed25519Priv)
+		require.NoError(t, err)
 
-	ecdsaPriv, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
-	require.NoError(t, err)
-	ecdsaPub := ecdsaPriv.PublicKey
+		ecdsaPriv, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
+		require.NoError(t, err)
+		ecdsaPub := ecdsaPriv.PublicKey
 
-	_, err = paseto.NewV3AsymmetricPublicKeyFromEcdsa(ecdsaPub)
-	require.NoError(t, err)
-	_, err = paseto.NewV3AsymmetricSecretKeyFromEcdsa(*ecdsaPriv)
-	require.NoError(t, err)
+		_, err = paseto.NewV3AsymmetricPublicKeyFromEcdsa(ecdsaPub)
+		require.NoError(t, err)
+		_, err = paseto.NewV3AsymmetricSecretKeyFromEcdsa(*ecdsaPriv)
+		require.NoError(t, err)
 
-	_, err = paseto.NewV4AsymmetricPublicKeyFromEd25519(ed25519Pub)
-	require.NoError(t, err)
-	_, err = paseto.NewV4AsymmetricSecretKeyFromEd25519(ed25519Priv)
-	require.NoError(t, err)
+		_, err = paseto.NewV4AsymmetricPublicKeyFromEd25519(ed25519Pub)
+		require.NoError(t, err)
+		_, err = paseto.NewV4AsymmetricSecretKeyFromEd25519(ed25519Priv)
+		require.NoError(t, err)
+	}
 }
 
 func TestBadEcdsaCurveImport(t *testing.T) {
