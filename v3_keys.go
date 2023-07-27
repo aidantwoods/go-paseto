@@ -109,7 +109,11 @@ func (k V3AsymmetricSecretKey) ExportHex() string {
 
 // ExportBytes export a V3AsymmetricSecretKey to raw byte array
 func (k V3AsymmetricSecretKey) ExportBytes() []byte {
-	return k.material.D.Bytes()
+	return paddedSecretBytes(k.material)
+}
+
+func paddedSecretBytes(private ecdsa.PrivateKey) []byte {
+	return private.D.FillBytes(make([]byte, 48))
 }
 
 // NewV3AsymmetricSecretKey generate a new secret key for use with asymmetric
@@ -157,7 +161,7 @@ func NewV3AsymmetricSecretKeyFromBytes(secretBytes []byte) (V3AsymmetricSecretKe
 // NewV3AsymmetricSecretKeyFromBytes creates a secret key from a standard Go object
 func NewV3AsymmetricSecretKeyFromEcdsa(privateKey ecdsa.PrivateKey) (V3AsymmetricSecretKey, error) {
 	// basic sanity check that public key is associated with key material
-	parsedPrivateKey, err := NewV3AsymmetricSecretKeyFromBytes(privateKey.D.Bytes())
+	parsedPrivateKey, err := NewV3AsymmetricSecretKeyFromBytes(paddedSecretBytes(privateKey))
 	if err != nil {
 		// even though we return error, return a random key here rather than
 		// a nil key
