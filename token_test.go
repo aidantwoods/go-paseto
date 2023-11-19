@@ -1,7 +1,9 @@
 package paseto_test
 
 import (
+	"math"
 	"testing"
+	"time"
 
 	"aidanwoods.dev/go-paseto"
 	"github.com/stretchr/testify/require"
@@ -284,4 +286,35 @@ func TestReadmePublicExample(t *testing.T) {
 		"{\"kid\":\"zVhMiPBP9fRf2snEcT7gFTioeA9COcNy9DfgL1W60haN\"}",
 		string(token.Footer()),
 	)
+}
+
+func TestBigUint64Claim(t *testing.T) {
+	token := paseto.NewToken()
+	var claims struct {
+		ID uint64 `json:"id"`
+	}
+	claims.ID = math.MaxUint64 // 18446744073709551615
+	require.NoError(t, token.Set("data", claims), "must be able to write a uint64 value to claims")
+	token.SetExpiration(time.Now().Add(time.Minute))
+	token.SetNotBefore(time.Now())
+	token.SetIssuedAt(time.Now())
+
+	secretKey := paseto.NewV4AsymmetricSecretKey()
+
+	signed := token.V4Sign(secretKey, nil)
+
+	parser := paseto.NewParser()
+	publicKey := secretKey.Public()
+
+	parsedToken, err := parser.ParseV4Public(publicKey, signed, nil)
+	require.NoError(t, err)
+	inputJson := token.ClaimsJSON()
+	parsedJson := parsedToken.ClaimsJSON()
+	require.JSONEq(t, string(inputJson), string(parsedJson))
+	var result struct {
+		ID uint64 `json:"id"`
+	}
+	// Returns an error because the value of ID is 18446744073709552000
+	require.NoError(t, parsedToken.Get("data", &result), "must decode data claims")
+	require.Equal(t, claims.ID, result.ID, "ID should be equal")
 }
