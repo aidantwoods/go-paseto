@@ -164,15 +164,14 @@ func protocolForPayload(payload payload) t.Result[Protocol] {
 	}
 }
 
-type packet struct {
-	content []byte
-	footer  []byte
+type ClaimsAndFooter struct {
+	Claims []byte
+	Footer []byte
 }
 
-func newPacket(content []byte, footer []byte) packet {
-	return packet{content, footer}
-}
-
-func (p packet) token() t.Result[Token] {
-	return t.NewPtrResult(NewTokenFromClaimsJSON(p.content, p.footer))
+func NewClaimsAndFooter(claims []byte, footer []byte) ClaimsAndFooter {
+	return ClaimsAndFooter{
+		Claims: claims,
+		Footer: footer,
+	}
 }
