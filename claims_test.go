@@ -142,7 +142,7 @@ func DLessThan(x int) func(t CustomToken) error {
 	}
 }
 
-func CustomTokenFromClaimsAndFooter(caf paseto.ClaimsAndFooter) (*CustomToken, error) {
+func CustomTokenFromClaimsAndFooter(caf paseto.EncodedTokenParts) (*CustomToken, error) {
 	token := new(CustomToken)
 
 	if err := json.Unmarshal(caf.Claims, token); err != nil {
@@ -154,7 +154,7 @@ func CustomTokenFromClaimsAndFooter(caf paseto.ClaimsAndFooter) (*CustomToken, e
 	return token, nil
 }
 
-func ClaimsAndFooterFromCustomToken(token CustomToken) paseto.ClaimsAndFooter {
+func ClaimsAndFooterFromCustomToken(token CustomToken) paseto.EncodedTokenParts {
 	claims, err := json.Marshal(token)
 	if err != nil {
 		panic("cannot serialise")
@@ -175,11 +175,11 @@ func TestAllClaimsPassStruct(t *testing.T) {
 	key := paseto.NewV4SymmetricKey()
 	secretKey := paseto.NewV4AsymmetricSecretKey()
 
-	encoder := paseto.NewEncoder(ClaimsAndFooterFromCustomToken)
+	encodedToken := ClaimsAndFooterFromCustomToken(token)
 
-	encrypted := encoder.V4Encrypt(key, token, nil)
+	encrypted := encodedToken.V4Encrypt(key, nil)
 
-	signed := encoder.V4Sign(secretKey, token, nil)
+	signed := encodedToken.V4Sign(secretKey, nil)
 
 	parser := paseto.NewParserT(CustomTokenFromClaimsAndFooter)
 	parser.AddRule(paseto.ForAudienceT[CustomToken]("audience"))

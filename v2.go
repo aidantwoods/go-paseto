@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/chacha20poly1305"
 )
 
-func v2PublicSign(packet ClaimsAndFooter, key V2AsymmetricSecretKey) message {
+func v2PublicSign(packet EncodedTokenParts, key V2AsymmetricSecretKey) message {
 	data, footer := packet.Claims, packet.Footer
 	header := []byte(V2Public.Header())
 
@@ -28,10 +28,10 @@ func v2PublicSign(packet ClaimsAndFooter, key V2AsymmetricSecretKey) message {
 	return newMessageFromPayloadAndFooter(v2PublicPayload{data, signature}, footer)
 }
 
-func v2PublicVerify(msg message, key V2AsymmetricPublicKey) t.Result[ClaimsAndFooter] {
+func v2PublicVerify(msg message, key V2AsymmetricPublicKey) t.Result[EncodedTokenParts] {
 	payload, ok := msg.p.(v2PublicPayload)
 	if msg.header() != V2Public.Header() || !ok {
-		return t.Err[ClaimsAndFooter](errorMessageHeaderVerify(V2Public, msg.header()))
+		return t.Err[EncodedTokenParts](errorMessageHeaderVerify(V2Public, msg.header()))
 	}
 
 	header, footer := []byte(msg.header()), msg.footer
@@ -40,13 +40,13 @@ func v2PublicVerify(msg message, key V2AsymmetricPublicKey) t.Result[ClaimsAndFo
 	m2 := encoding.Pae(header, data, footer)
 
 	if !ed25519.Verify(key.material, m2, payload.signature[:]) {
-		return t.Err[ClaimsAndFooter](errorBadSignature)
+		return t.Err[EncodedTokenParts](errorBadSignature)
 	}
 
-	return t.Ok(ClaimsAndFooter{data, footer})
+	return t.Ok(EncodedTokenParts{data, footer})
 }
 
-func v2LocalEncrypt(p ClaimsAndFooter, key V2SymmetricKey, unitTestNonce []byte) message {
+func v2LocalEncrypt(p EncodedTokenParts, key V2SymmetricKey, unitTestNonce []byte) message {
 	var b [24]byte
 	random.UseProvidedOrFillBytes(unitTestNonce, b[:])
 
@@ -65,10 +65,10 @@ func v2LocalEncrypt(p ClaimsAndFooter, key V2SymmetricKey, unitTestNonce []byte)
 	return newMessageFromPayloadAndFooter(v2LocalPayload{nonce, cipherText}, p.Footer)
 }
 
-func v2LocalDecrypt(msg message, key V2SymmetricKey) t.Result[ClaimsAndFooter] {
+func v2LocalDecrypt(msg message, key V2SymmetricKey) t.Result[EncodedTokenParts] {
 	payload, ok := msg.p.(v2LocalPayload)
 	if msg.header() != V2Local.Header() || !ok {
-		return t.Err[ClaimsAndFooter](errorMessageHeaderDecrypt(V2Local, msg.header()))
+		return t.Err[EncodedTokenParts](errorMessageHeaderDecrypt(V2Local, msg.header()))
 	}
 
 	nonce, cipherText := payload.nonce, payload.cipherText
@@ -82,8 +82,8 @@ func v2LocalDecrypt(msg message, key V2SymmetricKey) t.Result[ClaimsAndFooter] {
 
 	var plaintext []byte
 	if err := t.NewResult(cipher.Open(nil, nonce[:], cipherText, preAuth)).Ok(&plaintext); err != nil {
-		return t.Err[ClaimsAndFooter](errorDecrypt(err))
+		return t.Err[EncodedTokenParts](errorDecrypt(err))
 	}
 
-	return t.Ok(ClaimsAndFooter{plaintext, msg.footer})
+	return t.Ok(EncodedTokenParts{plaintext, msg.footer})
 }

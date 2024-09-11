@@ -14,7 +14,7 @@ import (
 	t "aidanwoods.dev/go-result"
 )
 
-func v3PublicSign(packet ClaimsAndFooter, key V3AsymmetricSecretKey, implicit []byte) message {
+func v3PublicSign(packet EncodedTokenParts, key V3AsymmetricSecretKey, implicit []byte) message {
 	data, footer := packet.Claims, packet.Footer
 	header := []byte(V3Public.Header())
 
@@ -44,10 +44,10 @@ func v3PublicSign(packet ClaimsAndFooter, key V3AsymmetricSecretKey, implicit []
 	return newMessageFromPayloadAndFooter(v3PublicPayload{data, signature}, footer)
 }
 
-func v3PublicVerify(msg message, key V3AsymmetricPublicKey, implicit []byte) t.Result[ClaimsAndFooter] {
+func v3PublicVerify(msg message, key V3AsymmetricPublicKey, implicit []byte) t.Result[EncodedTokenParts] {
 	payload, ok := msg.p.(v3PublicPayload)
 	if msg.header() != V3Public.Header() || !ok {
-		return t.Err[ClaimsAndFooter](errorMessageHeaderVerify(V3Public, msg.header()))
+		return t.Err[EncodedTokenParts](errorMessageHeaderVerify(V3Public, msg.header()))
 	}
 
 	header, footer := []byte(msg.header()), msg.footer
@@ -61,13 +61,13 @@ func v3PublicVerify(msg message, key V3AsymmetricPublicKey, implicit []byte) t.R
 	s := new(big.Int).SetBytes(payload.signature[48:])
 
 	if !ecdsa.Verify(&key.material, hash[:], r, s) {
-		return t.Err[ClaimsAndFooter](errorBadSignature)
+		return t.Err[EncodedTokenParts](errorBadSignature)
 	}
 
-	return t.Ok(ClaimsAndFooter{data, footer})
+	return t.Ok(EncodedTokenParts{data, footer})
 }
 
-func v3LocalEncrypt(p ClaimsAndFooter, key V3SymmetricKey, implicit []byte, unitTestNonce []byte) message {
+func v3LocalEncrypt(p EncodedTokenParts, key V3SymmetricKey, implicit []byte, unitTestNonce []byte) message {
 	var nonce [32]byte
 	random.UseProvidedOrFillBytes(unitTestNonce, nonce[:])
 
@@ -92,10 +92,10 @@ func v3LocalEncrypt(p ClaimsAndFooter, key V3SymmetricKey, implicit []byte, unit
 	return newMessageFromPayloadAndFooter(v3LocalPayload{nonce, cipherText, tag}, p.Footer)
 }
 
-func v3LocalDecrypt(msg message, key V3SymmetricKey, implicit []byte) t.Result[ClaimsAndFooter] {
+func v3LocalDecrypt(msg message, key V3SymmetricKey, implicit []byte) t.Result[EncodedTokenParts] {
 	payload, ok := msg.p.(v3LocalPayload)
 	if msg.header() != V3Local.Header() || !ok {
-		return t.Err[ClaimsAndFooter](errorMessageHeaderDecrypt(V3Local, msg.header()))
+		return t.Err[EncodedTokenParts](errorMessageHeaderDecrypt(V3Local, msg.header()))
 	}
 
 	nonce, cipherText, givenTag := payload.nonce, payload.cipherText, payload.tag
@@ -112,7 +112,7 @@ func v3LocalDecrypt(msg message, key V3SymmetricKey, implicit []byte) t.Result[C
 	copy(expectedTag[:], hm.Sum(nil))
 
 	if !hmac.Equal(expectedTag[:], givenTag[:]) {
-		return t.Err[ClaimsAndFooter](errorBadMAC)
+		return t.Err[EncodedTokenParts](errorBadMAC)
 	}
 
 	blockCipher := t.NewResult(aes.NewCipher(encKey[:])).
@@ -121,5 +121,5 @@ func v3LocalDecrypt(msg message, key V3SymmetricKey, implicit []byte) t.Result[C
 	plainText := make([]byte, len(cipherText))
 	cipher.NewCTR(blockCipher, nonce2[:]).XORKeyStream(plainText, cipherText)
 
-	return t.Ok(ClaimsAndFooter{plainText, msg.footer})
+	return t.Ok(EncodedTokenParts{plainText, msg.footer})
 }

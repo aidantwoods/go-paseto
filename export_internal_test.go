@@ -4,7 +4,7 @@ package paseto
 // the purpose of exporting some internal functions, which are used in
 // paseto_test.
 
-type Packet = ClaimsAndFooter
+type Packet = EncodedTokenParts
 
 var NewMessage = newMessage
 var NewPacket = NewClaimsAndFooter

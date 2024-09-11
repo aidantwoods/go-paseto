@@ -1,25 +1,13 @@
 package paseto
 
-type TokenEncoder[T any] func(T) ClaimsAndFooter
-
-type Encoder[T any] struct {
-	encode TokenEncoder[T]
-}
-
-func NewEncoder[T any](encode TokenEncoder[T]) Encoder[T] {
-	return Encoder[T]{
-		encode: encode,
-	}
-}
-
 // V2Sign signs the token, using the given key.
-func (e Encoder[T]) V2Sign(key V2AsymmetricSecretKey, token T) string {
-	return v2PublicSign(e.encode(token), key).string()
+func (p EncodedTokenParts) V2Sign(key V2AsymmetricSecretKey) string {
+	return v2PublicSign(p, key).string()
 }
 
 // V2Encrypt signs the token, using the given key.
-func (e Encoder[T]) V2Encrypt(key V2SymmetricKey, token T) string {
-	return v2LocalEncrypt(e.encode(token), key, nil).string()
+func (p EncodedTokenParts) V2Encrypt(key V2SymmetricKey) string {
+	return v2LocalEncrypt(p, key, nil).string()
 }
 
 // V3Sign signs the token, using the given key and implicit bytes. Implicit
@@ -27,8 +15,8 @@ func (e Encoder[T]) V2Encrypt(key V2SymmetricKey, token T) string {
 // the final token.
 // Implicit must be reprovided for successful verification, and can not be
 // recovered.
-func (e Encoder[T]) V3Sign(key V3AsymmetricSecretKey, token T, implicit []byte) string {
-	return v3PublicSign(e.encode(token), key, implicit).string()
+func (p EncodedTokenParts) V3Sign(key V3AsymmetricSecretKey, implicit []byte) string {
+	return v3PublicSign(p, key, implicit).string()
 }
 
 // V3Encrypt signs the token, using the given key and implicit bytes. Implicit
@@ -36,8 +24,8 @@ func (e Encoder[T]) V3Sign(key V3AsymmetricSecretKey, token T, implicit []byte) 
 // present in the final token (or its decrypted value).
 // Implicit must be reprovided for successful decryption, and can not be
 // recovered.
-func (e Encoder[T]) V3Encrypt(key V3SymmetricKey, token T, implicit []byte) string {
-	return v3LocalEncrypt(e.encode(token), key, implicit, nil).string()
+func (p EncodedTokenParts) V3Encrypt(key V3SymmetricKey, implicit []byte) string {
+	return v3LocalEncrypt(p, key, implicit, nil).string()
 }
 
 // V4Sign signs the token, using the given key and implicit bytes. Implicit
@@ -45,8 +33,8 @@ func (e Encoder[T]) V3Encrypt(key V3SymmetricKey, token T, implicit []byte) stri
 // the final token.
 // Implicit must be reprovided for successful verification, and can not be
 // recovered.
-func (e Encoder[T]) V4Sign(key V4AsymmetricSecretKey, token T, implicit []byte) string {
-	return v4PublicSign(e.encode(token), key, implicit).string()
+func (p EncodedTokenParts) V4Sign(key V4AsymmetricSecretKey, implicit []byte) string {
+	return v4PublicSign(p, key, implicit).string()
 }
 
 // V4Encrypt signs the token, using the given key and implicit bytes. Implicit
@@ -54,6 +42,6 @@ func (e Encoder[T]) V4Sign(key V4AsymmetricSecretKey, token T, implicit []byte) 
 // present in the final token (or its decrypted value).
 // Implicit must be reprovided for successful decryption, and can not be
 // recovered.
-func (e Encoder[T]) V4Encrypt(key V4SymmetricKey, token T, implicit []byte) string {
-	return v4LocalEncrypt(e.encode(token), key, implicit, nil).string()
+func (p EncodedTokenParts) V4Encrypt(key V4SymmetricKey, implicit []byte) string {
+	return v4LocalEncrypt(p, key, implicit, nil).string()
 }

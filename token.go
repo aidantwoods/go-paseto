@@ -14,7 +14,7 @@ type Token struct {
 	footer []byte
 }
 
-func StdDecoder(caf ClaimsAndFooter) (*Token, error) {
+func StdDecoder(caf EncodedTokenParts) (*Token, error) {
 	return NewTokenFromClaimsJSON(caf.Claims, caf.Footer)
 }
 
@@ -179,18 +179,18 @@ func (t *Token) SetFooter(footer []byte) {
 	t.footer = footer
 }
 
-func (t Token) packet() ClaimsAndFooter {
-	return ClaimsAndFooter{t.ClaimsJSON(), []byte(t.footer)}
+func (t Token) encode() EncodedTokenParts {
+	return EncodedTokenParts{t.ClaimsJSON(), []byte(t.footer)}
 }
 
 // V2Sign signs the token, using the given key.
 func (t Token) V2Sign(key V2AsymmetricSecretKey) string {
-	return v2PublicSign(t.packet(), key).string()
+	return t.encode().V2Sign(key)
 }
 
 // V2Encrypt signs the token, using the given key.
 func (t Token) V2Encrypt(key V2SymmetricKey) string {
-	return v2LocalEncrypt(t.packet(), key, nil).string()
+	return t.encode().V2Encrypt(key)
 }
 
 // V3Sign signs the token, using the given key and implicit bytes. Implicit
@@ -199,7 +199,7 @@ func (t Token) V2Encrypt(key V2SymmetricKey) string {
 // Implicit must be reprovided for successful verification, and can not be
 // recovered.
 func (t Token) V3Sign(key V3AsymmetricSecretKey, implicit []byte) string {
-	return v3PublicSign(t.packet(), key, implicit).string()
+	return t.encode().V3Sign(key, implicit)
 }
 
 // V3Encrypt signs the token, using the given key and implicit bytes. Implicit
@@ -208,7 +208,7 @@ func (t Token) V3Sign(key V3AsymmetricSecretKey, implicit []byte) string {
 // Implicit must be reprovided for successful decryption, and can not be
 // recovered.
 func (t Token) V3Encrypt(key V3SymmetricKey, implicit []byte) string {
-	return v3LocalEncrypt(t.packet(), key, implicit, nil).string()
+	return t.encode().V3Encrypt(key, implicit)
 }
 
 // V4Sign signs the token, using the given key and implicit bytes. Implicit
@@ -217,7 +217,7 @@ func (t Token) V3Encrypt(key V3SymmetricKey, implicit []byte) string {
 // Implicit must be reprovided for successful verification, and can not be
 // recovered.
 func (t Token) V4Sign(key V4AsymmetricSecretKey, implicit []byte) string {
-	return v4PublicSign(t.packet(), key, implicit).string()
+	return t.encode().V4Sign(key, implicit)
 }
 
 // V4Encrypt signs the token, using the given key and implicit bytes. Implicit
@@ -226,7 +226,7 @@ func (t Token) V4Sign(key V4AsymmetricSecretKey, implicit []byte) string {
 // Implicit must be reprovided for successful decryption, and can not be
 // recovered.
 func (t Token) V4Encrypt(key V4SymmetricKey, implicit []byte) string {
-	return v4LocalEncrypt(t.packet(), key, implicit, nil).string()
+	return t.encode().V4Encrypt(key, implicit)
 }
 
 func newTokenValue(bytes []byte) json.RawMessage {
