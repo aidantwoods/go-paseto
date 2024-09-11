@@ -1,12 +1,12 @@
 package paseto
 
 // V2Sign signs the token, using the given key.
-func (p EncodedTokenParts) V2Sign(key V2AsymmetricSecretKey) string {
+func (p TokenClaimsAndFooter) V2Sign(key V2AsymmetricSecretKey) string {
 	return v2PublicSign(p, key).string()
 }
 
 // V2Encrypt signs the token, using the given key.
-func (p EncodedTokenParts) V2Encrypt(key V2SymmetricKey) string {
+func (p TokenClaimsAndFooter) V2Encrypt(key V2SymmetricKey) string {
 	return v2LocalEncrypt(p, key, nil).string()
 }
 
@@ -15,7 +15,7 @@ func (p EncodedTokenParts) V2Encrypt(key V2SymmetricKey) string {
 // the final token.
 // Implicit must be reprovided for successful verification, and can not be
 // recovered.
-func (p EncodedTokenParts) V3Sign(key V3AsymmetricSecretKey, implicit []byte) string {
+func (p TokenClaimsAndFooter) V3Sign(key V3AsymmetricSecretKey, implicit []byte) string {
 	return v3PublicSign(p, key, implicit).string()
 }
 
@@ -24,7 +24,7 @@ func (p EncodedTokenParts) V3Sign(key V3AsymmetricSecretKey, implicit []byte) st
 // present in the final token (or its decrypted value).
 // Implicit must be reprovided for successful decryption, and can not be
 // recovered.
-func (p EncodedTokenParts) V3Encrypt(key V3SymmetricKey, implicit []byte) string {
+func (p TokenClaimsAndFooter) V3Encrypt(key V3SymmetricKey, implicit []byte) string {
 	return v3LocalEncrypt(p, key, implicit, nil).string()
 }
 
@@ -33,7 +33,7 @@ func (p EncodedTokenParts) V3Encrypt(key V3SymmetricKey, implicit []byte) string
 // the final token.
 // Implicit must be reprovided for successful verification, and can not be
 // recovered.
-func (p EncodedTokenParts) V4Sign(key V4AsymmetricSecretKey, implicit []byte) string {
+func (p TokenClaimsAndFooter) V4Sign(key V4AsymmetricSecretKey, implicit []byte) string {
 	return v4PublicSign(p, key, implicit).string()
 }
 
@@ -42,6 +42,6 @@ func (p EncodedTokenParts) V4Sign(key V4AsymmetricSecretKey, implicit []byte) st
 // present in the final token (or its decrypted value).
 // Implicit must be reprovided for successful decryption, and can not be
 // recovered.
-func (p EncodedTokenParts) V4Encrypt(key V4SymmetricKey, implicit []byte) string {
+func (p TokenClaimsAndFooter) V4Encrypt(key V4SymmetricKey, implicit []byte) string {
 	return v4LocalEncrypt(p, key, implicit, nil).string()
 }

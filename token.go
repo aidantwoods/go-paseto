@@ -14,7 +14,7 @@ type Token struct {
 	footer []byte
 }
 
-func StdDecoder(caf EncodedTokenParts) (*Token, error) {
+func StdDecoder(caf TokenClaimsAndFooter) (*Token, error) {
 	return NewTokenFromClaimsJSON(caf.Claims, caf.Footer)
 }
 
@@ -179,8 +179,8 @@ func (t *Token) SetFooter(footer []byte) {
 	t.footer = footer
 }
 
-func (t Token) encode() EncodedTokenParts {
-	return EncodedTokenParts{t.ClaimsJSON(), []byte(t.footer)}
+func (t Token) encode() TokenClaimsAndFooter {
+	return TokenClaimsAndFooter{t.ClaimsJSON(), []byte(t.footer)}
 }
 
 // V2Sign signs the token, using the given key.

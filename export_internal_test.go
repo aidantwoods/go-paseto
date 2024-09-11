@@ -4,10 +4,7 @@ package paseto
 // the purpose of exporting some internal functions, which are used in
 // paseto_test.
 
-type Packet = EncodedTokenParts
-
 var NewMessage = newMessage
-var NewPacket = NewClaimsAndFooter
 
 var V2LocalDecrypt = v2LocalDecrypt
 var V2LocalEncrypt = v2LocalEncrypt

@@ -6,7 +6,7 @@ import (
 	t "aidanwoods.dev/go-result"
 )
 
-type TokenDecoder[T any] func(EncodedTokenParts) (*T, error)
+type TokenDecoder[T any] func(TokenClaimsAndFooter) (*T, error)
 
 // Parser is used to verify or decrypt a token, and can be provided with
 // a set of rules.
@@ -67,10 +67,10 @@ func MakeParserT[T any](decoder TokenDecoder[T], rules []Rule[T]) Parser[T] {
 // ParseV2Local will parse and decrypt a v2 local paseto and validate against
 // any parser rules. Error if parsing, decryption, or any rule fails.
 func (p Parser[T]) ParseV2Local(key V2SymmetricKey, tainted string) (*T, error) {
-	return t.Chain3[T, T, EncodedTokenParts](
+	return t.Chain3[T, T, TokenClaimsAndFooter](
 		newMessage(V2Local, tainted)).
-		AndThen(func(m message) t.Result[EncodedTokenParts] { return m.v2Decrypt(key) }).
-		AndThen(func(caf EncodedTokenParts) t.Result[T] { return t.NewPtrResult(p.decode(caf)) }).
+		AndThen(func(m message) t.Result[TokenClaimsAndFooter] { return m.v2Decrypt(key) }).
+		AndThen(func(caf TokenClaimsAndFooter) t.Result[T] { return t.NewPtrResult(p.decode(caf)) }).
 		AndThen(p.validate).
 		Results()
 }
@@ -78,10 +78,10 @@ func (p Parser[T]) ParseV2Local(key V2SymmetricKey, tainted string) (*T, error) 
 // ParseV2Public will parse and verify a v2 public paseto and validate against
 // any parser rules. Error if parsing, verification, or any rule fails.
 func (p Parser[T]) ParseV2Public(key V2AsymmetricPublicKey, tainted string) (*T, error) {
-	return t.Chain3[T, T, EncodedTokenParts](
+	return t.Chain3[T, T, TokenClaimsAndFooter](
 		newMessage(V2Public, tainted)).
-		AndThen(func(m message) t.Result[EncodedTokenParts] { return m.v2Verify(key) }).
-		AndThen(func(caf EncodedTokenParts) t.Result[T] { return t.NewPtrResult(p.decode(caf)) }).
+		AndThen(func(m message) t.Result[TokenClaimsAndFooter] { return m.v2Verify(key) }).
+		AndThen(func(caf TokenClaimsAndFooter) t.Result[T] { return t.NewPtrResult(p.decode(caf)) }).
 		AndThen(p.validate).
 		Results()
 }
@@ -89,10 +89,10 @@ func (p Parser[T]) ParseV2Public(key V2AsymmetricPublicKey, tainted string) (*T,
 // ParseV3Local will parse and decrypt a v3 local paseto and validate against
 // any parser rules. Error if parsing, decryption, or any rule fails.
 func (p Parser[T]) ParseV3Local(key V3SymmetricKey, tainted string, implicit []byte) (*T, error) {
-	return t.Chain3[T, T, EncodedTokenParts](
+	return t.Chain3[T, T, TokenClaimsAndFooter](
 		newMessage(V3Local, tainted)).
-		AndThen(func(m message) t.Result[EncodedTokenParts] { return m.v3Decrypt(key, implicit) }).
-		AndThen(func(caf EncodedTokenParts) t.Result[T] { return t.NewPtrResult(p.decode(caf)) }).
+		AndThen(func(m message) t.Result[TokenClaimsAndFooter] { return m.v3Decrypt(key, implicit) }).
+		AndThen(func(caf TokenClaimsAndFooter) t.Result[T] { return t.NewPtrResult(p.decode(caf)) }).
 		AndThen(p.validate).
 		Results()
 }
@@ -100,10 +100,10 @@ func (p Parser[T]) ParseV3Local(key V3SymmetricKey, tainted string, implicit []b
 // ParseV3Public will parse and verify a v3 public paseto and validate against
 // any parser rules. Error if parsing, verification, or any rule fails.
 func (p Parser[T]) ParseV3Public(key V3AsymmetricPublicKey, tainted string, implicit []byte) (*T, error) {
-	return t.Chain3[T, T, EncodedTokenParts](
+	return t.Chain3[T, T, TokenClaimsAndFooter](
 		newMessage(V3Public, tainted)).
-		AndThen(func(m message) t.Result[EncodedTokenParts] { return m.v3Verify(key, implicit) }).
-		AndThen(func(caf EncodedTokenParts) t.Result[T] { return t.NewPtrResult(p.decode(caf)) }).
+		AndThen(func(m message) t.Result[TokenClaimsAndFooter] { return m.v3Verify(key, implicit) }).
+		AndThen(func(caf TokenClaimsAndFooter) t.Result[T] { return t.NewPtrResult(p.decode(caf)) }).
 		AndThen(p.validate).
 		Results()
 }
@@ -111,10 +111,10 @@ func (p Parser[T]) ParseV3Public(key V3AsymmetricPublicKey, tainted string, impl
 // ParseV4Local will parse and decrypt a v4 local paseto and validate against
 // any parser rules. Error if parsing, decryption, or any rule fails.
 func (p Parser[T]) ParseV4Local(key V4SymmetricKey, tainted string, implicit []byte) (*T, error) {
-	return t.Chain3[T, T, EncodedTokenParts](
+	return t.Chain3[T, T, TokenClaimsAndFooter](
 		newMessage(V4Local, tainted)).
-		AndThen(func(m message) t.Result[EncodedTokenParts] { return m.v4Decrypt(key, implicit) }).
-		AndThen(func(caf EncodedTokenParts) t.Result[T] { return t.NewPtrResult(p.decode(caf)) }).
+		AndThen(func(m message) t.Result[TokenClaimsAndFooter] { return m.v4Decrypt(key, implicit) }).
+		AndThen(func(caf TokenClaimsAndFooter) t.Result[T] { return t.NewPtrResult(p.decode(caf)) }).
 		AndThen(p.validate).
 		Results()
 }
@@ -122,10 +122,10 @@ func (p Parser[T]) ParseV4Local(key V4SymmetricKey, tainted string, implicit []b
 // ParseV4Public will parse and verify a v4 public paseto and validate against
 // any parser rules. Error if parsing, verification, or any rule fails.
 func (p Parser[T]) ParseV4Public(key V4AsymmetricPublicKey, tainted string, implicit []byte) (*T, error) {
-	return t.Chain3[T, T, EncodedTokenParts](
+	return t.Chain3[T, T, TokenClaimsAndFooter](
 		newMessage(V4Public, tainted)).
-		AndThen(func(m message) t.Result[EncodedTokenParts] { return m.v4Verify(key, implicit) }).
-		AndThen(func(caf EncodedTokenParts) t.Result[T] { return t.NewPtrResult(p.decode(caf)) }).
+		AndThen(func(m message) t.Result[TokenClaimsAndFooter] { return m.v4Verify(key, implicit) }).
+		AndThen(func(caf TokenClaimsAndFooter) t.Result[T] { return t.NewPtrResult(p.decode(caf)) }).
 		AndThen(p.validate).
 		Results()
 }

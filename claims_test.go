@@ -142,7 +142,7 @@ func DLessThan(x int) func(t CustomToken) error {
 	}
 }
 
-func CustomTokenFromClaimsAndFooter(caf paseto.EncodedTokenParts) (*CustomToken, error) {
+func CustomTokenFromClaimsAndFooter(caf paseto.TokenClaimsAndFooter) (*CustomToken, error) {
 	token := new(CustomToken)
 
 	if err := json.Unmarshal(caf.Claims, token); err != nil {
@@ -154,7 +154,7 @@ func CustomTokenFromClaimsAndFooter(caf paseto.EncodedTokenParts) (*CustomToken,
 	return token, nil
 }
 
-func ClaimsAndFooterFromCustomToken(token CustomToken) paseto.EncodedTokenParts {
+func ClaimsAndFooterFromCustomToken(token CustomToken) paseto.TokenClaimsAndFooter {
 	claims, err := json.Marshal(token)
 	if err != nil {
 		panic("cannot serialise")

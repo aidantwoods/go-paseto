@@ -164,15 +164,15 @@ func protocolForPayload(payload payload) t.Result[Protocol] {
 	}
 }
 
-type EncodedTokenParts struct {
+type TokenClaimsAndFooter struct {
 	// Serialised token claims. These claims MUST be serialised JSON.
 	Claims []byte
 	// Serialised token footer. This footer SHOULD be serialised JSON.
 	Footer []byte
 }
 
-func NewClaimsAndFooter(claims []byte, footer []byte) EncodedTokenParts {
-	return EncodedTokenParts{
+func NewClaimsAndFooter(claims []byte, footer []byte) TokenClaimsAndFooter {
+	return TokenClaimsAndFooter{
 		Claims: claims,
 		Footer: footer,
 	}
