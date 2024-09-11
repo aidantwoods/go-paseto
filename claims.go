@@ -13,37 +13,30 @@ type Rule[T any] func(token T) error
 
 type TokenAudience interface {
 	GetAudience() (string, error)
-	// SetAudience(string)
 }
 
 type TokenExpiration interface {
 	GetExpiration() (time.Time, error)
-	// SetExpiration(time.Time)
 }
 
 type TokenIssuedAt interface {
 	GetIssuedAt() (time.Time, error)
-	// SetIssuedAt(time.Time)
 }
 
 type TokenIssuer interface {
 	GetIssuer() (string, error)
-	// SetIssuer(string)
 }
 
 type TokenJti interface {
 	GetJti() (string, error)
-	// SetJti(string)
 }
 
 type TokenNotBefore interface {
 	GetNotBefore() (time.Time, error)
-	// SetNotBefore(string)
 }
 
 type TokenSubject interface {
 	GetSubject() (string, error)
-	// SetSubject(string)
 }
 
 // ForAudienceT requires that the given audience matches the audience field of the

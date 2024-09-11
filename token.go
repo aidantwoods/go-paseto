@@ -75,10 +75,6 @@ func (token *Token) Set(key string, value any) error {
 		UnwrapErrOr(nil)
 }
 
-func Set[T any](token Token, key string, value T) error {
-	return token.Set(key, value)
-}
-
 // Get gets the given key and writes the value into output (which should be a
 // a pointer), if present by parsing the JSON using encoding/json.
 func (t Token) Get(key string, output any) (err error) {
