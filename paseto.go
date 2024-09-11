@@ -171,6 +171,9 @@ type TokenClaimsAndFooter struct {
 	Footer []byte
 }
 
+// NewClaimsAndFooter creates a claims and footer pair from custom encoded data.
+// This should be used to transform a custom type into this pair, which
+// can then be signed or encrypted as a paseto token.
 func NewClaimsAndFooter(claims []byte, footer []byte) TokenClaimsAndFooter {
 	return TokenClaimsAndFooter{
 		Claims: claims,
