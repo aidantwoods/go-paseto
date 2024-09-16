@@ -40,7 +40,7 @@ func TestV2(t *testing.T) {
 
 	for _, test := range tests.Tests {
 		t.Run(test.Name, func(t *testing.T) {
-			var decoded ty.Result[paseto.Packet]
+			var decoded ty.Result[paseto.TokenClaimsAndFooter]
 
 			switch test.Key {
 			// Local mode
@@ -90,10 +90,10 @@ func TestV2(t *testing.T) {
 				decoded.Expect("decoded should be present")
 			}
 
-			require.Equal(t, test.Payload, string(decoded.Unwrap().Content()))
-			require.Equal(t, test.Footer, string(decoded.Unwrap().Footer()))
+			require.Equal(t, test.Payload, string(decoded.Unwrap().Claims))
+			require.Equal(t, test.Footer, string(decoded.Unwrap().Footer))
 
-			packet := paseto.NewPacket([]byte(test.Payload), []byte(test.Footer))
+			packet := paseto.NewClaimsAndFooter([]byte(test.Payload), []byte(test.Footer))
 
 			switch test.Key {
 			// Local mode
@@ -133,7 +133,7 @@ func TestV3(t *testing.T) {
 
 	for _, test := range tests.Tests {
 		t.Run(test.Name, func(t *testing.T) {
-			var decoded ty.Result[paseto.Packet]
+			var decoded ty.Result[paseto.TokenClaimsAndFooter]
 
 			switch test.Key {
 			// Local mode
@@ -183,10 +183,10 @@ func TestV3(t *testing.T) {
 				decoded.Expect("decoded should be present")
 			}
 
-			require.Equal(t, test.Payload, string(decoded.Unwrap().Content()))
-			require.Equal(t, test.Footer, string(decoded.Unwrap().Footer()))
+			require.Equal(t, test.Payload, string(decoded.Unwrap().Claims))
+			require.Equal(t, test.Footer, string(decoded.Unwrap().Footer))
 
-			packet := paseto.NewPacket([]byte(test.Payload), []byte(test.Footer))
+			packet := paseto.NewClaimsAndFooter([]byte(test.Payload), []byte(test.Footer))
 			implicit := []byte(test.ImplicitAssertation)
 
 			switch test.Key {
@@ -218,8 +218,8 @@ func TestV3(t *testing.T) {
 				decoded = paseto.V3PublicVerify(signed, pk, []byte(test.ImplicitAssertation))
 				require.NoError(t, err)
 
-				require.Equal(t, test.Payload, string(decoded.Unwrap().Content()))
-				require.Equal(t, test.Footer, string(decoded.Unwrap().Footer()))
+				require.Equal(t, test.Payload, string(decoded.Unwrap().Claims))
+				require.Equal(t, test.Footer, string(decoded.Unwrap().Footer))
 			}
 		})
 	}
@@ -241,7 +241,7 @@ func TestV4(t *testing.T) {
 
 	for _, test := range tests.Tests {
 		t.Run(test.Name, func(t *testing.T) {
-			var decoded ty.Result[paseto.Packet]
+			var decoded ty.Result[paseto.TokenClaimsAndFooter]
 
 			switch test.Key {
 			// Local mode
@@ -292,10 +292,10 @@ func TestV4(t *testing.T) {
 				decoded.Expect("decoded should be present")
 			}
 
-			require.Equal(t, test.Payload, string(decoded.Unwrap().Content()))
-			require.Equal(t, test.Footer, string(decoded.Unwrap().Footer()))
+			require.Equal(t, test.Payload, string(decoded.Unwrap().Claims))
+			require.Equal(t, test.Footer, string(decoded.Unwrap().Footer))
 
-			packet := paseto.NewPacket([]byte(test.Payload), []byte(test.Footer))
+			packet := paseto.NewClaimsAndFooter([]byte(test.Payload), []byte(test.Footer))
 			implicit := []byte(test.ImplicitAssertation)
 
 			switch test.Key {

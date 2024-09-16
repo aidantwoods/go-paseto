@@ -1,6 +1,8 @@
 package paseto_test
 
 import (
+	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -105,6 +107,89 @@ func TestAllClaimsPassV4(t *testing.T) {
 
 	_, err := parser.ParseV4Local(key, encrypted, nil)
 	require.NoError(t, err)
+
+	_, err = parser.ParseV4Public(secretKey.Public(), signed, nil)
+	require.NoError(t, err)
+}
+
+type CustomToken struct {
+	A      string
+	B      string
+	C      time.Time
+	D      int
+	Footer string `json:"-"`
+}
+
+func (t CustomToken) GetAudience() (string, error) {
+	return t.A, nil
+}
+
+func (t CustomToken) GetSubject() (string, error) {
+	return t.B, nil
+}
+
+func (t CustomToken) GetExpiration() (time.Time, error) {
+	return t.C, nil
+}
+
+func DLessThan(x int) func(t CustomToken) error {
+	return func(t CustomToken) error {
+		if t.D >= x {
+			return fmt.Errorf("D too large")
+		}
+
+		return nil
+	}
+}
+
+func CustomTokenFromClaimsAndFooter(caf paseto.TokenClaimsAndFooter) (*CustomToken, error) {
+	token := new(CustomToken)
+
+	if err := json.Unmarshal(caf.Claims, token); err != nil {
+		return nil, err
+	}
+
+	token.Footer = string(caf.Footer)
+
+	return token, nil
+}
+
+func ClaimsAndFooterFromCustomToken(token CustomToken) paseto.TokenClaimsAndFooter {
+	claims, err := json.Marshal(token)
+	if err != nil {
+		panic("cannot serialise")
+	}
+
+	return paseto.NewClaimsAndFooter(claims, []byte(token.Footer))
+}
+
+func TestAllClaimsPassStruct(t *testing.T) {
+	token := CustomToken{
+		A:      "audience",
+		B:      "subject",
+		C:      time.Now().Add(time.Minute),
+		D:      6,
+		Footer: "footer",
+	}
+
+	key := paseto.NewV4SymmetricKey()
+	secretKey := paseto.NewV4AsymmetricSecretKey()
+
+	encodedToken := ClaimsAndFooterFromCustomToken(token)
+
+	encrypted := encodedToken.V4Encrypt(key, nil)
+
+	signed := encodedToken.V4Sign(secretKey, nil)
+
+	parser := paseto.NewParserT(CustomTokenFromClaimsAndFooter)
+	parser.AddRule(paseto.ForAudienceT[CustomToken]("audience"))
+	parser.AddRule(paseto.SubjectT[CustomToken]("subject"))
+	parser.AddRule(paseto.NotExpiredT[CustomToken]())
+	parser.AddRule(DLessThan(10))
+
+	t1, err := parser.ParseV4Local(key, encrypted, nil)
+	require.NoError(t, err)
+	require.Equal(t, token.Footer, t1.Footer)
 
 	_, err = parser.ParseV4Public(secretKey.Public(), signed, nil)
 	require.NoError(t, err)

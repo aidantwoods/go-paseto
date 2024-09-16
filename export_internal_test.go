@@ -4,10 +4,7 @@ package paseto
 // the purpose of exporting some internal functions, which are used in
 // paseto_test.
 
-type Packet = packet
-
 var NewMessage = newMessage
-var NewPacket = newPacket
 
 var V2LocalDecrypt = v2LocalDecrypt
 var V2LocalEncrypt = v2LocalEncrypt
@@ -25,13 +22,5 @@ var V4PublicVerify = v4PublicVerify
 var V4PublicSign = v4PublicSign
 
 func (m message) Encoded() string {
-	return m.encoded()
-}
-
-func (p packet) Content() []byte {
-	return p.content
-}
-
-func (p packet) Footer() []byte {
-	return p.footer
+	return m.string()
 }

@@ -9,12 +9,40 @@ import (
 // Rule validates a given token for certain required preconditions (defined by
 // the rule itself). If validation fails a Rule MUST return an error, otherwise
 // error MUST be nil.
-type Rule func(token Token) error
+type Rule[T any] func(token T) error
 
-// ForAudience requires that the given audience matches the "aud" field of the
+type TokenAudience interface {
+	GetAudience() (string, error)
+}
+
+type TokenExpiration interface {
+	GetExpiration() (time.Time, error)
+}
+
+type TokenIssuedAt interface {
+	GetIssuedAt() (time.Time, error)
+}
+
+type TokenIssuer interface {
+	GetIssuer() (string, error)
+}
+
+type TokenJti interface {
+	GetJti() (string, error)
+}
+
+type TokenNotBefore interface {
+	GetNotBefore() (time.Time, error)
+}
+
+type TokenSubject interface {
+	GetSubject() (string, error)
+}
+
+// ForAudienceT requires that the given audience matches the audience field of the
 // token.
-func ForAudience(audience string) Rule {
-	return func(token Token) error {
+func ForAudienceT[T TokenAudience](audience string) Rule[T] {
+	return func(token T) error {
 		tAud, err := token.GetAudience()
 		if err != nil {
 			return err
@@ -28,10 +56,14 @@ func ForAudience(audience string) Rule {
 	}
 }
 
-// IdentifiedBy requires that the given identifier matches the "jti" field of
+// ForAudience requires that the given audience matches the "aud" field of the
+// token.
+var ForAudience = ForAudienceT[Token]
+
+// IdentifiedByT requires that the given identifier matches the jti field of
 // the token.
-func IdentifiedBy(identifier string) Rule {
-	return func(token Token) error {
+func IdentifiedByT[T TokenJti](identifier string) Rule[T] {
+	return func(token T) error {
 		tJti, err := token.GetJti()
 		if err != nil {
 			return err
@@ -45,9 +77,13 @@ func IdentifiedBy(identifier string) Rule {
 	}
 }
 
-// IssuedBy requires that the given issuer matches the "iss" field of the token.
-func IssuedBy(issuer string) Rule {
-	return func(token Token) error {
+// IdentifiedBy requires that the given identifier matches the "jti" field of
+// the token.
+var IdentifiedBy = IdentifiedByT[Token]
+
+// IssuedByT requires that the given issuer matches the issuer field of the token.
+func IssuedByT[T TokenIssuer](issuer string) Rule[T] {
+	return func(token T) error {
 		tIss, err := token.GetIssuer()
 		if err != nil {
 			return err
@@ -64,12 +100,15 @@ func IssuedBy(issuer string) Rule {
 	}
 }
 
-// NotBeforeNbf requires that the token is allowed to be used according to the time
-// when this rule is checked and the "nbf" field of a token. Beware that this
-// rule does not validate the token's "iat" or "exp" fields, or even require
+// IssuedBy requires that the given issuer matches the "iss" field of the token.
+var IssuedBy = IssuedByT[Token]
+
+// NotBeforeNbfT requires that the token is allowed to be used according to the time
+// when this rule is checked and the not before field of a token. Beware that this
+// rule does not validate the token's issued at or expiration fields, or even require
 // their presence.
-func NotBeforeNbf() Rule {
-	return func(token Token) error {
+func NotBeforeNbfT[T TokenNotBefore]() Rule[T] {
+	return func(token T) error {
 		nbf, err := token.GetNotBefore()
 		if err != nil {
 			return err
@@ -83,12 +122,18 @@ func NotBeforeNbf() Rule {
 	}
 }
 
-// NotExpired requires that the token has not expired according to the time
-// when this rule is checked and the "exp" field of a token. Beware that this
-// rule does not validate the token's "iat" or "nbf" fields, or even require
+// NotBeforeNbf requires that the token is allowed to be used according to the time
+// when this rule is checked and the not before field of a token. Beware that this
+// rule does not validate the token's issued at or expiration fields, or even require
 // their presence.
-func NotExpired() Rule {
-	return func(token Token) error {
+var NotBeforeNbf = NotBeforeNbfT[Token]
+
+// NotExpiredT requires that the token has not expired according to the time
+// when this rule is checked and the expiration field of a token. Beware that this
+// rule does not validate the token's issued at or not before fields, or even require
+// their presence.
+func NotExpiredT[T TokenExpiration]() Rule[T] {
+	return func(token T) error {
 		exp, err := token.GetExpiration()
 		if err != nil {
 			return err
@@ -102,9 +147,15 @@ func NotExpired() Rule {
 	}
 }
 
-// Subject requires that the given subject matches the "sub" field of the token.
-func Subject(subject string) Rule {
-	return func(token Token) error {
+// NotExpired requires that the token has not expired according to the time
+// when this rule is checked and the expiration field of a token. Beware that this
+// rule does not validate the token's issued at or not before fields, or even require
+// their presence.
+var NotExpired = NotExpiredT[Token]
+
+// SubjectT requires that the given subject matches the subject field of the token.
+func SubjectT[T TokenSubject](subject string) Rule[T] {
+	return func(token T) error {
 		tSub, err := token.GetSubject()
 		if err != nil {
 			return err
@@ -118,11 +169,20 @@ func Subject(subject string) Rule {
 	}
 }
 
-// ValidAt requires that the token has not expired according to the given time
-// and the "exp" field, and that the given time is both after the token's issued
-// at time "iat", and the token's not before time "nbf".
-func ValidAt(t time.Time) Rule {
-	return func(token Token) error {
+// Subject requires that the given subject matches the subject field of the token.
+var Subject = SubjectT[Token]
+
+type TokenValidAt interface {
+	TokenIssuedAt
+	TokenNotBefore
+	TokenExpiration
+}
+
+// ValidAtT requires that the token has not expired according to the given time
+// and the expiration field, and that the given time is both after the token's issued
+// at time, and the token's not before time.
+func ValidAtT[T TokenValidAt](t time.Time) Rule[T] {
+	return func(token T) error {
 		iat, err := token.GetIssuedAt()
 		if err != nil {
 			return err
@@ -150,6 +210,11 @@ func ValidAt(t time.Time) Rule {
 		return nil
 	}
 }
+
+// ValidAt requires that the token has not expired according to the given time
+// and the expiration field, and that the given time is both after the token's issued
+// at time, and the token's not before time.
+var ValidAt = ValidAtT[Token]
 
 // GetAudience returns the token's "aud" field, or error if not found or not a
 // string.

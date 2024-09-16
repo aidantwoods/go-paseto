@@ -164,15 +164,19 @@ func protocolForPayload(payload payload) t.Result[Protocol] {
 	}
 }
 
-type packet struct {
-	content []byte
-	footer  []byte
+type TokenClaimsAndFooter struct {
+	// Serialised token claims. These claims MUST be serialised JSON.
+	Claims []byte
+	// Serialised token footer. This footer SHOULD be serialised JSON.
+	Footer []byte
 }
 
-func newPacket(content []byte, footer []byte) packet {
-	return packet{content, footer}
-}
-
-func (p packet) token() t.Result[Token] {
-	return t.NewPtrResult(NewTokenFromClaimsJSON(p.content, p.footer))
+// NewClaimsAndFooter creates a claims and footer pair from custom encoded data.
+// This should be used to transform a custom type into this pair, which
+// can then be signed or encrypted as a paseto token.
+func NewClaimsAndFooter(claims []byte, footer []byte) TokenClaimsAndFooter {
+	return TokenClaimsAndFooter{
+		Claims: claims,
+		Footer: footer,
+	}
 }
