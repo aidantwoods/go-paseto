@@ -1,4 +1,4 @@
-module aidanwoods.dev/go-paseto
+module aidanwoods.dev/go-paseto/v2
 
 go 1.18
 

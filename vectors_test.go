@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"aidanwoods.dev/go-paseto"
+	"aidanwoods.dev/go-paseto/v2"
 	ty "aidanwoods.dev/go-result"
 	"github.com/stretchr/testify/require"
 )

@@ -3,7 +3,7 @@ package paseto
 import (
 	"strings"
 
-	"aidanwoods.dev/go-paseto/internal/encoding"
+	"aidanwoods.dev/go-paseto/v2/internal/encoding"
 	t "aidanwoods.dev/go-result"
 )
 
