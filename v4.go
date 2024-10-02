@@ -4,9 +4,9 @@ import (
 	"crypto/ed25519"
 	"crypto/hmac"
 
-	"aidanwoods.dev/go-paseto/internal/encoding"
-	"aidanwoods.dev/go-paseto/internal/hashing"
-	"aidanwoods.dev/go-paseto/internal/random"
+	"aidanwoods.dev/go-paseto/v2/internal/encoding"
+	"aidanwoods.dev/go-paseto/v2/internal/hashing"
+	"aidanwoods.dev/go-paseto/v2/internal/random"
 	t "aidanwoods.dev/go-result"
 	"golang.org/x/crypto/chacha20"
 )

@@ -4,8 +4,8 @@ import (
 	"crypto/ed25519"
 	"encoding/hex"
 
-	"aidanwoods.dev/go-paseto/internal/encoding"
-	"aidanwoods.dev/go-paseto/internal/random"
+	"aidanwoods.dev/go-paseto/v2/internal/encoding"
+	"aidanwoods.dev/go-paseto/v2/internal/random"
 	t "aidanwoods.dev/go-result"
 )
 

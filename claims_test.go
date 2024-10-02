@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"aidanwoods.dev/go-paseto"
+	"aidanwoods.dev/go-paseto/v2"
 	"github.com/stretchr/testify/require"
 )
 
