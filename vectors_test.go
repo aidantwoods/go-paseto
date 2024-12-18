@@ -28,6 +28,8 @@ type TestVector struct {
 	Footer              string
 	ExpectFail          bool   `json:"expect-fail"`
 	ImplicitAssertation string `json:"implicit-assertion"`
+	Paserk              string
+	Comment             string
 }
 
 func TestV2(t *testing.T) {
@@ -322,6 +324,51 @@ func TestV4(t *testing.T) {
 
 				require.Equal(t, test.Token, signed.Encoded())
 			}
+		})
+	}
+}
+
+func TestPaserkV4Public(t *testing.T) {
+	data, err := os.ReadFile("test-vectors/PASERK/k4.public.json")
+	require.NoError(t, err)
+
+	var tests TestVectors
+	err = json.Unmarshal(data, &tests)
+	require.NoError(t, err)
+
+	for _, test := range tests.Tests {
+		t.Run(test.Name, func(t *testing.T) {
+
+			k, err := paseto.NewV4AsymmetricPublicKeyFromHex(test.Key)
+			if test.ExpectFail {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+
+			token, err := paseto.ExportPaserkRaw(&k)
+			if test.ExpectFail {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+
+			require.Equal(t, test.Paserk, token)
+		})
+	}
+
+	for _, test := range tests.Tests {
+		t.Run(test.Name+"-reverse", func(t *testing.T) {
+
+			k, err := paseto.ParsePaserkRaw(test.Paserk)
+			if test.ExpectFail {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+
+			v4key := k.(*paseto.V4AsymmetricPublicKey)
+			require.Equal(t, test.Key, v4key.ExportHex())
 		})
 	}
 }

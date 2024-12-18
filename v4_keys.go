@@ -52,6 +52,13 @@ func (k V4AsymmetricPublicKey) ExportBytes() []byte {
 	return k.material
 }
 
+func (k *V4AsymmetricPublicKey) getVersion() KeyVersion {
+	return KeyVersionV4
+}
+func (k *V4AsymmetricPublicKey) getPurpose() keyPurpose {
+	return keyPurposePublic
+}
+
 // V4AsymmetricSecretKey v4 public private key
 type V4AsymmetricSecretKey struct {
 	material ed25519.PrivateKey
