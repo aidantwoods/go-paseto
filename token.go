@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+type TokenSigner interface {
+	SignToken(data []byte) ([]byte, error)
+}
+
 // Token is a set of paseto claims, and a footer
 type Token struct {
 	claims map[string]json.RawMessage
@@ -210,4 +214,21 @@ func (t Token) V4Sign(key V4AsymmetricSecretKey, implicit []byte) string {
 // recovered.
 func (t Token) V4Encrypt(key V4SymmetricKey, implicit []byte) string {
 	return v4LocalEncrypt(t.packet(), key, implicit, nil).encoded()
+}
+
+// V4SignWith signs the token, using the given token signer and implicit bytes. Implicit
+// bytes are bytes used to calculate the signature, but which are not present in
+// the final token.
+// Implicit must be reprovided for successful verification, and can not be
+// recovered.
+func (t Token) V4SignWith(signer TokenSigner, implicit []byte) (string, error) {
+	if signer == nil {
+		panic("signer must not be nil")
+	}
+
+	sig, err := v4PublicSignWith(t.packet(), implicit, signer)
+	if err != nil {
+		return "", err
+	}
+	return sig.encoded(), nil
 }
