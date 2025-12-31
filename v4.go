@@ -3,6 +3,7 @@ package paseto
 import (
 	"crypto/ed25519"
 	"crypto/hmac"
+	"errors"
 
 	"aidanwoods.dev/go-paseto/internal/encoding"
 	"aidanwoods.dev/go-paseto/internal/hashing"
@@ -99,4 +100,24 @@ func v4LocalDecrypt(msg message, key V4SymmetricKey, implicit []byte) result.Res
 	cipher.XORKeyStream(plainText, cipherText)
 
 	return result.Ok(packet{plainText, msg.footer})
+}
+
+func v4PublicSignWith(packet packet, implicit []byte, signer TokenSigner) (message, error) {
+	data, footer := packet.content, packet.footer
+	header := []byte(V4Public.Header())
+
+	m2 := encoding.Pae(header, data, footer, implicit)
+
+	sig, err := signer.SignToken(m2)
+	if err != nil {
+		return message{}, err
+	}
+	if len(sig) != 64 {
+		return message{}, errors.New("bad signature length")
+	}
+
+	var signature [64]byte
+	copy(signature[:], sig)
+
+	return newMessageFromPayloadAndFooter(v4PublicPayload{data, signature}, footer), nil
 }
